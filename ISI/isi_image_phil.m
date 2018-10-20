@@ -66,11 +66,16 @@ if exist([filename '.qcamraw'],'file')
         end
         f = f+chunksize;
     end
+    
     diffMean = (stimMean - baseMean)./baseMean * 100;
     % Didn't find .mat file, so write it now:
     save(outputfilename, 'stimMean', 'baseMean','diffMean');
 else
     error(['Could not find either file ' filename '.qcamraw!'])
 end
+figure(1)
+imagesc(stim')
+title('stim period mean- for seeing where glare is')
 
+colormap(gray)
 imtool(diffMean',[-0.5 0.5])

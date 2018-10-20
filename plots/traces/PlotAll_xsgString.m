@@ -1,6 +1,6 @@
 % function PlotAll_xsg(fileDir)
 %plot all XSG files from a folder into one plot
-fileDir='Z:\Users\Phil\Data\whole cell\PM0037 for plotting'
+fileDir='Z:\Users\Phil\Data\EPHUS\test\688_145_AAAA_'
 % fileDir = 'Z:\Users\Phil\Data\whole cell\New folder';
 dirinfo = dir(fileDir);
 
@@ -17,16 +17,13 @@ TraceNamesToPlot= traceNames;
 Index = 1:numel(traceNames);
 cellName = 'ALL_CELLS';
 count = 1;
-%%
-%set for the set you want to plot if you have multiple otherwise just use
-%1 here
 
-% NumToPlot =input('how many traces per plot?');%num of traces per figure
-% for i = 1:100
-%     n=(i-1)*NumToPlot;
-%     var{i} = 1+n:NumToPlot+n;
-% end
-%%
+
+
+
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 counter = 0;
 numOftraces= numel(traceNames);
 for k = 1 %determines which folder to look at 
@@ -61,7 +58,7 @@ save([fileDir OutputName '.mat'], 'tracesVar');
 %% PLOT ONLY ONE CELL E.G CELL AAAB otherwise index will be all numbers of cells 
 %Index = 1:numel(traceNames); %for plotting all traces in folder
 clear index
-cellName = 'AAAA';
+cellName = 'AAAB';
 IndexC = strfind(traceNames, cellName);
 Index = find(not(cellfun('isempty', IndexC)));
 
@@ -99,11 +96,11 @@ end
 %use this to plot select XSG files just dividethe x location by 42000
 %(sampling rate 10,000 hZ time of trials 4.2s) then round that number up to
 %get the disired trace. 
-
+traceToPlot = 5; 
 count = count +1;
 TracePlotHandle = figure(count);
 hold on
-SelectedIndex = Index(1);
+SelectedIndex = Index(traceToPlot);
 traceNamesPlotted = traceNames(SelectedIndex);
 FirstTraceNum = traceNamesPlotted{1}(11:14);
 if numel(SelectedIndex)>1

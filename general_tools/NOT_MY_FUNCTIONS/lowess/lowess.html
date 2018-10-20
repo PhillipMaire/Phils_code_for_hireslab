@@ -1,0 +1,1046 @@
+
+<!DOCTYPE html
+  PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html><head>
+      <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+   <!--
+This HTML was auto-generated from MATLAB code.
+To make changes, update the MATLAB code and republish this document.
+      --><title>LOWESS- Locally Weighted Scatterplot Smoothing</title><meta name="generator" content="MATLAB 7.12"><link rel="schema.DC" href="http://purl.org/dc/elements/1.1/"><meta name="DC.date" content="2012-06-15"><meta name="DC.source" content="lowess.m"><style type="text/css">
+
+body {
+  background-color: white;
+  margin:10px;
+}
+
+h1 {
+  color: #990000; 
+  font-size: x-large;
+}
+
+h2 {
+  color: #990000;
+  font-size: medium;
+}
+
+/* Make the text shrink to fit narrow windows, but not stretch too far in 
+wide windows. */ 
+p,h1,h2,div.content div {
+  max-width: 600px;
+  /* Hack for IE6 */
+  width: auto !important; width: 600px;
+}
+
+pre.codeinput {
+  background: #EEEEEE;
+  padding: 10px;
+}
+@media print {
+  pre.codeinput {word-wrap:break-word; width:100%;}
+} 
+
+span.keyword {color: #0000FF}
+span.comment {color: #228B22}
+span.string {color: #A020F0}
+span.untermstring {color: #B20000}
+span.syscmd {color: #B28C00}
+
+pre.codeoutput {
+  color: #666666;
+  padding: 10px;
+}
+
+pre.error {
+  color: red;
+}
+
+p.footer {
+  text-align: right;
+  font-size: xx-small;
+  font-weight: lighter;
+  font-style: italic;
+  color: gray;
+}
+
+  </style></head><body><div class="content"><h1>LOWESS- Locally Weighted Scatterplot Smoothing</h1><!--introduction--><!--/introduction--><h2>Contents</h2><div><ul><li><a href="#1">Modifications:</a></li><li><a href="#2">Create example dataset: (uncomment and paste in the command window)</a></li><li><a href="#3">Description</a></li><li><a href="#4">Primary Function: lowess</a></li><li><a href="#6">Generate predicted XY data</a></li><li><a href="#8">Modification of check for ten or more non-zero weights</a></li><li><a href="#9">Weighted least squares</a></li><li><a href="#10">Plotting of data and lowess regression line</a></li></ul></div><h2>Modifications:<a name="1"></a></h2><p>This regression will work on linear and non-linear relationships between X and Y.</p><pre>  12/19/2008 - added upper and lower LOWESS smooths.  These additional
+  smooths show how the distribution of Y varies with X.  These smooths
+  are simply LOWESS applied to the positive and negative residuals
+  separately, then added to the original lowess of the data.  The same
+  smoothing factor is applied to both the upper and lower limits.</pre><pre>  2/21/2009 - added sorting to the function, data no longer need to be
+  sorted.  Also added a routine such that if a user also supplies a
+  second dataset, linear interpolations are done one the lowess and used
+  to predict y-values for the supplied x-values.</pre><pre>  10/22/2009 - modified the second user provided X-data for obtaining
+  predictions.  Matlab function unique sorts by default.  It really was
+  not needed in the section of code to perform linear interpolations of
+  the x-data using the y-predicted LOWESS results.  If the user does not
+  supply a second x-data set, it will assume to use the supplied x-y
+  data set.  Thus there is an output (xy) that maintains the original
+  sequence of the input.  Additionally, the user can now include a
+  sequence index as the first column of input data. This can be a
+  datenum or some other ordering index.  The output will be sequenced
+  using that index.  If a sequence index is provided a second subplot
+  will be created show the predicted Y-values in the order of the
+  included sequence index. I suspect this sequence index most often will
+  be a DateTime (i.e. datenum).  Just to the function generic enough,
+  the X-axis labels are not converted to a nice date format, but the
+  user could easily change that with a datetic attribute in the subplot.</pre><pre>  11/3/2009 - modified charting to include upper and lower line plots on
+  the simulated subplot (i.e. the lower plot).</pre><pre>  6/15/2012 - oddly, when using this routine on data without a time
+  sequence (i.e. a third column), the plotting portions cause an error.
+  Not sure how I would have missed that but...I think I have it fixed.</pre><pre>  An example dataset (skl1a.mat) is also included in the ZIP file for
+  convenience. or you can use the below segment as a test that has no time
+  sequence in the data.</pre><h2>Create example dataset: (uncomment and paste in the command window)<a name="2"></a></h2><pre>  x = 0:0.1:10;
+  noise = normrnd(0,1, [1 length(x)]);
+  y = 10*sin(x) + noise;
+  datain = [x;y]';
+  f = 0.15;
+  wantplot = 1;
+  xdata = x';
+  [dataout lowerLimit upperLimit xy] = lowess(datain,f,0);
+  % A second plot to illustrate what values would be used, and how it
+  % compares to the original function used to generate the data
+  plot(dataout(:,1), dataout(:,2), '.blue',dataout(:,1),dataout(:,3),...
+     '-black', x, 10*sin(x), '--red')
+  grid on</pre><h2>Description<a name="3"></a></h2><p>Using a robust regression like LOWESS allows one the ability to detect a trend in data that may otherwise have too much variance resulting in non-significance p-values.</p><p>Yhat (prediction) is computed from a weghted least squares regression whose weights are both a function of distance from X and magnitude from of the residual from the previous regression.</p><p>The conceptual of these functions and subfunctions follow the USGS Kendall.exe routines. Because matlab is 8-byte precision, there are some very small differences between FORTRAN compiled and matlab. Maybe 64-bit OS's has 16-byte precision in matlab?</p><p>There is a very simple subfunction to create a plot of the data and regression if the user so choses with a flag in the call to the lowess function. BTW-- the png file looks much better than what the figure looks like on screen.</p><p>There are loops in these routines to keep the memory requirements to a minimum, since it is foreseeable that one may have very large datasets to work with.</p><p>f = a smoothing factor between 0 and 1.  The closer to one, the more smoothing done.</p><p>Syntax:</p><pre> [dataout lowerLimit upperLimit xy] = lowess(datain,f,wantplot,imagefile,xdata)</pre><pre> datain = n x 2 (or 3 if sequend index is included) matrix
+ dataout = n x 3 matrix
+ wantplot = scaler (optional)
+      if ~= 0 then create plot
+ imagefile = full path and file name where to output the figure to an
+      png file type at 600 dpi. If imagefile not provided, a figure will
+      be displayed but not exported to a graphics file.
+      e.g. imagefile = 'd:\temp\lowess.png';
+ xdata = n x 1 vector. The user can supply a second dataset of x-values
+      that will be used to predict y-values using the lowess regression
+      results.
+ xy = x-values supplied by the user in xdata (or taken from the input
+      data), and y-predictions using the lowess regression results.  If
+      a sequence index is given this will be included as well and
+      inserted as the first column and the last two columns are the
+      lower and upper simulations using the regression lower and upper
+      restuls.</pre><p>where:</p><pre>*  datain(:,1) = x
+*  datain(:,2) = y
+*  f = scaler (0 &lt; f &lt; 1)
+*  wantplot = scaler
+*  imagefile = string</pre><pre>*  dataout(:,1) = x
+*  dataout(:,2) = y
+*  dataout(:,3) = y-prediction (aka yhat)
+*  lowerLimit(:,1) = x with negative residuals
+*  lowerLimit(:,2) = y-prediction of residuals + original y-prediction
+*  upperLimit(:,1) = x with positive residuals
+*  upperLimit(:,2) = y-prediction of residuals + original y-prediction</pre><p>Requirements:  none</p><p>Written by</p><pre>Jeff Burkey
+King County Department of Natural Resources and Parks
+email: jeff.burkey@kingcounty.gov
+12/16/2008</pre><p>Example syntax: [dataout lowerLimit upperLimit xy] = lowess(skl1a,.25,1,'c:\temp\test.png',xdata)</p><h2>Primary Function: lowess<a name="4"></a></h2><p>The main engine for this function.</p><pre class="codeinput"><span class="keyword">function</span> [dataout lowerLimit upperLimit xy] = lowess(datain,f,wantplot,imagefile,xdata)
+</pre><pre class="codeinput">    <span class="comment">% start timer</span>
+    start = tic;
+
+    rowcol = size(datain);
+
+    <span class="keyword">if</span> rowcol(2) == 3
+        <span class="comment">% assume time index for first column</span>
+        dte = datain(:,1);
+        x_data = datain(:,2);
+        y_data = datain(:,3);
+    <span class="keyword">else</span> <span class="comment">% assign empty set</span>
+        dte = [];
+        x_data = datain(:,1);
+        y_data = datain(:,2);
+    <span class="keyword">end</span>
+
+    <span class="keyword">if</span> exist(<span class="string">'xdata'</span>,<span class="string">'var'</span>) == 0
+        <span class="comment">% User didn't provide any x-valures for generating a dataset use</span>
+        <span class="comment">% supplied set prior to sorting.</span>
+        xdata = [dte x_data];
+    <span class="keyword">else</span>
+        xdata = [dte xdata];
+    <span class="keyword">end</span>
+
+
+    datain = sortrows([x_data y_data]);
+
+    <span class="keyword">if</span> exist(<span class="string">'wantplot'</span>,<span class="string">'var'</span>) == 0 || wantplot == 0
+        <span class="comment">% user didn't provide assume zero (i.e. no plot)</span>
+        fprintf(<span class="string">'\nNo plot will be created.\n'</span>);
+        wantplot = 0;
+        imagefile = <span class="string">''</span>;
+        limits = 1;
+        upperLimit = nan;
+        lowerLimit = nan;
+    <span class="keyword">else</span>
+        limits = 3;
+    <span class="keyword">end</span>
+    <span class="keyword">if</span> exist(<span class="string">'imagefile'</span>,<span class="string">'var'</span>) == 0
+        <span class="comment">% User didn't provide do not export to graphics file</span>
+        fprintf(<span class="string">'\nNo plot will be exported.\n'</span>);
+        imagefile = <span class="string">''</span>;
+    <span class="keyword">end</span>
+
+    dataout = [];
+
+    <span class="keyword">for</span> nplots=1:limits
+        <span class="comment">% if limits is turned on, then plot the upper and lower limits of</span>
+        <span class="comment">% the lowess- set to plot residuals lowess</span>
+        row = find(datain(:,1));
+        x = datain(row,1);
+        y = datain(row,2);
+
+        <span class="keyword">switch</span> nplots
+            <span class="keyword">case</span> 2
+                row = lwsResiduals &gt; 0;
+                x = dataout(row,1);
+                y = lwsResiduals(row);
+            <span class="keyword">case</span> 3
+                row = lwsResiduals &lt; 0;
+                x = dataout(row,1);
+                y = lwsResiduals(row);
+        <span class="keyword">end</span>
+
+        n = length(x);
+
+        <span class="keyword">if</span> (f &lt;= 0.0)
+            f=0.25; <span class="comment">% set to default</span>
+        <span class="keyword">end</span>
+
+        m=fix(n*f+0.5);
+        window = zeros(n,1);
+        yhat = zeros(n,1);
+
+        <span class="keyword">for</span> j=1:n
+            <span class="comment">% This could be done in a matrix, but need to keep memory footprint</span>
+            <span class="comment">% small, thus the loop.</span>
+            d = abs(x- x(j));
+            r1 = ones(n,1);
+            d = sort(d);
+
+            window(j)=d(m);
+            yhat(j)= rwlreg(x,y,n,window(j),r1,x(j));
+        <span class="keyword">end</span>
+
+        <span class="keyword">for</span> it=1:2
+            e = abs(y-yhat);
+
+            n = length(e);
+            s=median(e);
+
+            r = e/(6*s);
+            r = 1-r.^2;
+            r = max(0.d0,r);
+            r = r.^2;
+
+            <span class="keyword">for</span> j=1:n
+                yhat(j)= rwlreg(x,y,n,window(j),r,x(j));
+            <span class="keyword">end</span>
+        <span class="keyword">end</span>
+
+        <span class="keyword">switch</span> nplots
+            <span class="keyword">case</span> 1
+                <span class="comment">% calculate residuals otherwise skip</span>
+                lwsResiduals = y - yhat;
+                dataout = [x y yhat];
+            <span class="keyword">case</span> 2
+                ul = [x y yhat];
+                [~, ia, ib] = intersect(dataout(:,1),ul(:,1));
+                upperLimit = [ul(ib,1) ul(ib,3) + dataout(ia,3)];
+                clear <span class="string">ul</span> <span class="string">c</span> <span class="string">ia</span> <span class="string">ib</span>
+            <span class="keyword">case</span> 3
+                ll = [x y yhat];
+                [~, ia, ib] = intersect(dataout(:,1),ll(:,1));
+                lowerLimit = [ll(ib,1) ll(ib,3) + dataout(ia,3)];
+                clear <span class="string">ul</span> <span class="string">c</span> <span class="string">ia</span> <span class="string">ib</span>
+        <span class="keyword">end</span>
+    <span class="keyword">end</span>
+
+    fprintf(<span class="string">'\nCompute time %6.4f seconds.\n'</span>,toc(start));
+</pre><h2>Generate predicted XY data<a name="6"></a></h2><p>Using linear interpolation to estimate y from the lowess regression Any x-values beyond the range given to generate the lowess will be ignorged.  Matlab unique function sorts the data, thus a modified unique function (usunique) was developed to return an unsorted vector.</p><p>This limiting of the interpolation is done because if there are data beyond the regression range it may not be valid to use a different regression for an extrapolation.  But users choice.</p><pre class="codeinput">    <span class="keyword">if</span> ~isempty(xdata)
+        xyd = [dataout(:,1) dataout(:,3)];
+        xyd = unique(xyd,<span class="string">'rows'</span>);
+        xd = xdata;
+
+        <span class="comment">% The below two lines are commented out to allow for extrapolations</span>
+        <span class="comment">%         xd = xdata(xdata &gt;= min(xyd(:,1)));</span>
+        <span class="comment">%         xd = xd(xd &lt;= max(xyd(:,1)));</span>
+
+        <span class="keyword">if</span> ~isnan(xyd)
+            <span class="comment">% Note:  it may be possible to have a few nan's in the data set</span>
+            <span class="comment">% while the results would still be valid.  I haven't come</span>
+            <span class="comment">% across a case of this but is possible.  If so, then the user</span>
+            <span class="comment">% may need to incorporate a threshold of just how many nan's</span>
+            <span class="comment">% would be acceptable before dumping the whole regression.  But</span>
+            <span class="comment">% to be conservative, if there are any nan's throw out the</span>
+            <span class="comment">% whole result dataset.</span>
+            <span class="comment">%</span>
+            <span class="comment">% Note: change LINEAR to SPLINE, this will allow for</span>
+            <span class="comment">% extrapolations, BUT using the SPLINE function now.</span>
+            xd = unique(xd,<span class="string">'rows'</span>);
+
+            <span class="comment">% Needed to account for useing including time sequence or not.</span>
+            <span class="comment">%  modified June 15, 2012</span>
+            [~, c] = size(xd);
+            <span class="keyword">if</span> c == 2
+                xv = xd(:,2);
+            <span class="keyword">elseif</span> c == 1
+                xv = xd;
+            <span class="keyword">end</span>
+
+            yinterp = interp1(xyd(:,1),xyd(:,2),xv,<span class="string">'spline'</span>);
+            <span class="keyword">if</span> wantplot ~= 0
+                ylow = interp1(lowerLimit(:,1),lowerLimit(:,2),xv,<span class="string">'spline'</span>);
+                yup =  interp1(upperLimit(:,1),upperLimit(:,2),xv,<span class="string">'spline'</span>);
+                xy = [dte xv yinterp ylow yup];
+            <span class="keyword">else</span>
+                xy = [dte xv yinterp];
+            <span class="keyword">end</span>
+
+
+            <span class="keyword">if</span> length(xd) ~= length(xdata)
+                fprintf(<span class="string">'\nOne or more x-values were beyond the range supplied to lowess.\nOr there were duplicate values.\nThey will be ignored.\n'</span>);
+            <span class="keyword">end</span>
+        <span class="keyword">else</span>
+            fprintf(<span class="string">'\nThere were NaNs in the lowess results. No plot will be created.\n'</span>);
+            wantplot = 0;
+            xy = nan;
+        <span class="keyword">end</span>
+    <span class="keyword">end</span>
+
+    <span class="keyword">if</span> wantplot ~= 0
+        customplot(dataout,upperLimit,lowerLimit,f,[dte x_data y_data],xy,imagefile);
+    <span class="keyword">end</span>
+</pre><pre class="codeoutput">Warning: NaN found in Y, interpolation at undefined values
+	 will result in undefined values. 
+Warning: All data points with NaN in their value will be ignored. 
+</pre><pre class="codeinput"><span class="keyword">end</span>
+</pre><h2>Modification of check for ten or more non-zero weights<a name="8"></a></h2><p>Hirsch June 1987</p><p>Robust weighted least squares regression, bisquare weights by         distance on X-axis.   x = is the estimation point   yy = is the estimate value of y at x   dd = is half the width of the window   r = is the robustness weight, a bisquare weight of residuals.</p><pre class="codeinput"><span class="keyword">function</span> [yy] = rwlreg(x,y,n,d,r,xx)
+    dd=d;
+    ddmax = abs(x(n) - x(1));
+    <span class="keyword">if</span> dd == 0.0
+        error(<span class="string">'Regression:lowess'</span>,<span class="string">'LOWESS window size = 0. Increase f.'</span>);
+    <span class="keyword">else</span>
+        <span class="keyword">while</span> dd &lt;= ddmax
+            c = 0;
+            total = 0.0;
+            f = (abs(x-xx)/dd);
+            f = 1.0-f.^3;
+            w = ((max(0.d0,f)).^3).*r;
+            total = sum(w);
+            c = sum(w&gt;0);
+            <span class="keyword">if</span> c &gt; 3
+                <span class="keyword">break</span> <span class="comment">% out of while loop</span>
+            <span class="keyword">else</span>
+                dd=1.28*dd;
+                fprintf(<span class="string">'\nrobust size of window = %5.0f.\nLowess window size increased to %3.2f\n'</span>, c, dd);
+            <span class="keyword">end</span>
+        <span class="keyword">end</span>
+    <span class="keyword">end</span>
+
+    w = w/total;
+
+    [a b] = wlsq(x,y,w);
+    yy=a+b*xx;
+<span class="keyword">end</span>
+</pre><pre class="codeoutput">
+robust size of window =     3.
+Lowess window size increased to 89.60
+</pre><pre class="codeoutput">
+robust size of window =     3.
+Lowess window size increased to 89.60
+</pre><h2>Weighted least squares<a name="9"></a></h2><p>This subfunction does not require any toolboxes in matlab to execute.</p><pre class="codeinput"><span class="keyword">function</span>[a b] = wlsq(x,y,w)
+    sumw = abs(1-sum(w));
+    <span class="keyword">if</span> sumw &gt; 1e-10
+        <span class="comment">% The weights, w, must sum to one. Precision assuming type double,</span>
+        <span class="comment">%    The user may want to adjust this value.</span>
+        error(<span class="string">'Regression:wlsq'</span>,<span class="string">'\nThere is an error in the weights.\nWeights do not equal zero (%10.9f).\n'</span>,sumw);
+    <span class="keyword">end</span>
+    wxx = sum(w.*x.^2);
+    wx = sum(w.*x);
+    wxy = sum(w.*x.*y);
+    wy = sum(w.*y);
+    b = (wxy-wy*wx)/(wxx-wx^2);
+    a = wy-b*wx;
+<span class="keyword">end</span>
+</pre><pre class="codeoutput">
+Compute time 2.0610 seconds.
+</pre><h2>Plotting of data and lowess regression line<a name="10"></a></h2><p>If a sequence vector is included in the data, the figure will contain two subplots.  The first one is the LOWESS regression of the data, the second plots the time in the original sequence using the first column of input data. Example a datenum for when the data were observed would be common. The second plot will plot the observed Y-data and the predicted Y-data.</p><pre class="codeinput"><span class="keyword">function</span> customplot(lws,uplmt,lwrlmt,f,oldxy,newxy,imgfile)
+    figure1 = figure;
+
+    <span class="keyword">try</span>
+        rowcol = size(newxy);
+        <span class="keyword">if</span> rowcol(2) == 5 <span class="comment">% Users provided a sequence index e.g. Datenum</span>
+            <span class="comment">% The second subplot id defined first as a matter of</span>
+            <span class="comment">% readability in the code.  This Conditional segment will not</span>
+            <span class="comment">% be executed if no sequence index is provided (e.g. datetime).</span>
+            subplot(2,2,3:4,<span class="string">'Parent'</span>,figure1,<span class="keyword">...</span>
+                <span class="string">'YScale'</span>,<span class="string">'linear'</span>,<span class="string">'YMinorTick'</span>,<span class="string">'off'</span>,<span class="keyword">...</span>
+                <span class="string">'XScale'</span>,<span class="string">'linear'</span>,<span class="string">'XMinorTick'</span>,<span class="string">'on'</span>,<span class="keyword">...</span>
+                <span class="string">'YMinorGrid'</span>,<span class="string">'off'</span>,<span class="keyword">...</span>
+                <span class="string">'XMinorGrid'</span>,<span class="string">'on'</span>);
+            box(<span class="string">'on'</span>);
+            grid(<span class="string">'on'</span>);
+            hold(<span class="string">'all'</span>);
+
+            line(oldxy(:,1),oldxy(:,3),<span class="string">'LineStyle'</span>,<span class="string">'none'</span>, <span class="keyword">...</span>
+                <span class="string">'Marker'</span>,<span class="string">'o'</span>,<span class="string">'MarkerSize'</span>,7,<span class="keyword">...</span>
+                <span class="string">'MarkerEdgeColor'</span>,<span class="string">'k'</span>,<span class="keyword">...</span>
+                <span class="string">'MarkerFaceColor'</span>,<span class="string">'b'</span>,<span class="keyword">...</span>
+                <span class="string">'DisplayName'</span>,<span class="string">'Observed'</span>);
+
+            line(newxy(:,1),newxy(:,3),<span class="string">'LineStyle'</span>,<span class="string">'-'</span>, <span class="keyword">...</span>
+                <span class="string">'LineWidth'</span>,2,<span class="string">'Color'</span>,<span class="string">'r'</span>,<span class="keyword">...</span>
+                <span class="string">'DisplayName'</span>,<span class="string">'Simulated'</span>);
+
+            line(newxy(:,1),newxy(:,4),<span class="string">'LineStyle'</span>,<span class="string">':'</span>, <span class="keyword">...</span>
+                <span class="string">'LineWidth'</span>,2,<span class="string">'Color'</span>,<span class="string">'m'</span>,<span class="keyword">...</span>
+                <span class="string">'DisplayName'</span>,<span class="string">'Lower'</span>);
+
+            h = line(newxy(:,1),newxy(:,5),<span class="string">'LineStyle'</span>,<span class="string">':'</span>, <span class="keyword">...</span>
+                <span class="string">'LineWidth'</span>,2,<span class="string">'Color'</span>,<span class="string">'g'</span>,<span class="keyword">...</span>
+                <span class="string">'DisplayName'</span>,<span class="string">'Upper'</span>);
+
+            <span class="comment">% The below lines are commented out, but for convenience</span>
+            <span class="comment">% uncomment if one wants to make the upper and lower lines the</span>
+            <span class="comment">% same color, you can not have duplicate symbols in the legend.</span>
+<span class="comment">%             hAnnotation = get(h,'Annotation');</span>
+<span class="comment">%             hLegendEntry = get(hAnnotation','LegendInformation');</span>
+<span class="comment">%             set(hLegendEntry,'IconDisplayStyle','off');</span>
+
+            ylabel(<span class="string">'y-Values'</span>);
+            xlabel(<span class="string">'Sequence Index (e.g. datenum)'</span>);
+            title(<span class="string">'Simulated y-Values using LOWESS Regression'</span>);
+
+            <span class="comment">% Create legend - although I'm not overly pleased using the default</span>
+            <span class="comment">% location of placement.  I want it outside the grid, but the</span>
+            <span class="comment">% default without manually describing locations this will have to</span>
+            <span class="comment">% do for now.  Placing them inside the grid yields the most</span>
+            <span class="comment">% reelestate, but the lenged box possibly could cover up data.</span>
+            legend(<span class="string">'show'</span>,<span class="string">'Location'</span>,<span class="string">'EastOutside'</span>);
+
+            hold(<span class="string">'off'</span>);
+
+            <span class="comment">% This is the primary plot that will be generate either from</span>
+            <span class="comment">% this conditional statement or in the ELSEIF below. They are</span>
+            <span class="comment">% exact same except for defining Subplot space as either two</span>
+            <span class="comment">% plots or one.</span>
+            subplot(2,2,1:2,<span class="string">'Parent'</span>,figure1,<span class="keyword">...</span>
+                <span class="string">'YScale'</span>,<span class="string">'linear'</span>,<span class="string">'YMinorTick'</span>,<span class="string">'off'</span>,<span class="keyword">...</span>
+                <span class="string">'XScale'</span>,<span class="string">'linear'</span>,<span class="string">'XMinorTick'</span>,<span class="string">'on'</span>,<span class="keyword">...</span>
+                <span class="string">'YMinorGrid'</span>,<span class="string">'off'</span>,<span class="keyword">...</span>
+                <span class="string">'XMinorGrid'</span>,<span class="string">'on'</span>);
+        <span class="keyword">elseif</span> rowcol(2) == 2
+            <span class="comment">% No sequence index is given, second plot would be identical to</span>
+            <span class="comment">% first plot.  Define plot to occupy space of both subplots.</span>
+            <span class="comment">% This could be revised and not even call it a subplot, but for</span>
+            <span class="comment">% consistency it is.</span>
+            subplot(2,1,1:2,<span class="string">'Parent'</span>,figure1,<span class="keyword">...</span>
+                <span class="string">'YScale'</span>,<span class="string">'linear'</span>,<span class="string">'YMinorTick'</span>,<span class="string">'off'</span>,<span class="keyword">...</span>
+                <span class="string">'XScale'</span>,<span class="string">'linear'</span>,<span class="string">'XMinorTick'</span>,<span class="string">'on'</span>,<span class="keyword">...</span>
+                <span class="string">'YMinorGrid'</span>,<span class="string">'off'</span>,<span class="keyword">...</span>
+                <span class="string">'XMinorGrid'</span>,<span class="string">'on'</span>);
+        <span class="keyword">end</span>
+
+        box(<span class="string">'on'</span>);
+        grid(<span class="string">'on'</span>);
+        hold(<span class="string">'all'</span>);
+
+        x = lws(:,1);
+        y = lws(:,2);
+        yh = lws(:,3);
+
+        <span class="comment">% Point plot of points of the observed data on the LOWESS plot</span>
+        line(x,y,<span class="string">'LineStyle'</span>,<span class="string">'none'</span>, <span class="keyword">...</span>
+            <span class="string">'Marker'</span>,<span class="string">'o'</span>,<span class="string">'MarkerSize'</span>,7,<span class="keyword">...</span>
+            <span class="string">'MarkerEdgeColor'</span>,<span class="string">'k'</span>,<span class="keyword">...</span>
+            <span class="string">'MarkerFaceColor'</span>,<span class="string">'b'</span>,<span class="keyword">...</span>
+            <span class="string">'DisplayName'</span>,<span class="string">'Observed'</span>);
+
+        <span class="comment">% Line plot of the LOWESS regression</span>
+        line(x,yh, <span class="string">'Color'</span>,<span class="string">'r'</span>, <span class="string">'LineWidth'</span>,2, <span class="string">'LineStyle'</span>,<span class="string">'-'</span>, <span class="keyword">...</span>
+            <span class="string">'DisplayName'</span>,<span class="string">'Regression'</span> <span class="keyword">...</span>
+            );
+
+
+        x = uplmt(:,1);
+        yh = uplmt(:,2);
+
+        <span class="comment">% Line plot of the upper limit LOWESS regression</span>
+        line(x,yh, <span class="string">'Color'</span>, <span class="string">'r'</span>, <span class="string">'LineWidth'</span>,2,<span class="string">'LineStyle'</span>,<span class="string">':'</span>, <span class="keyword">...</span>
+            <span class="string">'DisplayName'</span>,<span class="string">'Upper/Lower'</span> <span class="keyword">...</span>
+            );
+
+        x = lwrlmt(:,1);
+        yh = lwrlmt(:,2);
+
+        <span class="comment">% Line plot of the lower limit LOWESS regression</span>
+        h = line(x,yh, <span class="string">'Color'</span>, <span class="string">'r'</span>, <span class="string">'LineWidth'</span>,2,<span class="string">'LineStyle'</span>,<span class="string">':'</span>, <span class="keyword">...</span>
+            <span class="string">'DisplayName'</span>,<span class="string">'Lower'</span> <span class="keyword">...</span>
+            );
+        hAnnotation = get(h,<span class="string">'Annotation'</span>);
+        hLegendEntry = get(hAnnotation',<span class="string">'LegendInformation'</span>);
+        set(hLegendEntry,<span class="string">'IconDisplayStyle'</span>,<span class="string">'off'</span>);
+
+        grid <span class="string">on</span>
+        xlabel(<span class="string">'x-Values'</span>)
+        ylabel(<span class="string">'y-Values'</span>)
+        ts = strcat(<span class="string">'LOWESS Regression plot f='</span>,num2str(f));
+        title(ts)
+
+        <span class="comment">% Create legend - although I'm not overly pleased using the default</span>
+        <span class="comment">% location of placement.  I want it outside the grid, but the</span>
+        <span class="comment">% default without manually describing locations this will have to</span>
+        <span class="comment">% do for now.  Placing them inside the grid yields the most</span>
+        <span class="comment">% real-estate, but the lenged box possibly could cover up data.</span>
+        legend(<span class="string">'show'</span>,<span class="string">'Location'</span>,<span class="string">'EastOutside'</span>);
+
+        hold(<span class="string">'off'</span>);
+
+        <span class="keyword">if</span> ~isempty(imgfile)
+            <span class="comment">% If a filename is give for the plot, create a PNG file.</span>
+            fprintf(<span class="string">'\nCreating plot. Give a few tics.\n'</span>);
+            print(<span class="string">'-dpng'</span>,<span class="string">'-r600'</span>, imgfile);
+            fprintf(<span class="string">'\nFinished...\n'</span>);
+        <span class="keyword">end</span>
+
+        close(figure1)
+    <span class="keyword">catch</span> ME1
+        disp(ME1)
+    <span class="keyword">end</span>
+<span class="keyword">end</span>
+</pre><pre class="codeoutput">
+Creating plot. Give a few tics.
+
+Finished...
+</pre><p class="footer"><br>
+      Published with MATLAB&reg; 7.12<br></p></div><!--
+##### SOURCE BEGIN #####
+%% LOWESS- Locally Weighted Scatterplot Smoothing
+%% Modifications:
+%
+% This regression will work on linear and non-linear relationships between
+% X and Y.
+%
+%    12/19/2008 - added upper and lower LOWESS smooths.  These additional
+%    smooths show how the distribution of Y varies with X.  These smooths
+%    are simply LOWESS applied to the positive and negative residuals
+%    separately, then added to the original lowess of the data.  The same
+%    smoothing factor is applied to both the upper and lower limits.
+%
+%    2/21/2009 - added sorting to the function, data no longer need to be
+%    sorted.  Also added a routine such that if a user also supplies a
+%    second dataset, linear interpolations are done one the lowess and used
+%    to predict y-values for the supplied x-values.
+%
+%    10/22/2009 - modified the second user provided X-data for obtaining
+%    predictions.  Matlab function unique sorts by default.  It really was
+%    not needed in the section of code to perform linear interpolations of
+%    the x-data using the y-predicted LOWESS results.  If the user does not
+%    supply a second x-data set, it will assume to use the supplied x-y
+%    data set.  Thus there is an output (xy) that maintains the original
+%    sequence of the input.  Additionally, the user can now include a
+%    sequence index as the first column of input data. This can be a
+%    datenum or some other ordering index.  The output will be sequenced
+%    using that index.  If a sequence index is provided a second subplot
+%    will be created show the predicted Y-values in the order of the
+%    included sequence index. I suspect this sequence index most often will
+%    be a DateTime (i.e. datenum).  Just to the function generic enough,
+%    the X-axis labels are not converted to a nice date format, but the
+%    user could easily change that with a datetic attribute in the subplot.
+%
+%    11/3/2009 - modified charting to include upper and lower line plots on
+%    the simulated subplot (i.e. the lower plot).
+%
+%    6/15/2012 - oddly, when using this routine on data without a time
+%    sequence (i.e. a third column), the plotting portions cause an error. 
+%    Not sure how I would have missed that but...I think I have it fixed.
+%
+%    An example dataset (skl1a.mat) is also included in the ZIP file for 
+%    convenience. or you can use the below segment as a test that has no time 
+%    sequence in the data.
+%
+%% Create example dataset: (uncomment and paste in the command window)
+%    x = 0:0.1:10;
+%    noise = normrnd(0,1, [1 length(x)]);
+%    y = 10*sin(x) + noise;
+%    datain = [x;y]';
+%    f = 0.15;
+%    wantplot = 1;
+%    xdata = x';
+%    [dataout lowerLimit upperLimit xy] = lowess(datain,f,0);
+%    % A second plot to illustrate what values would be used, and how it
+%    % compares to the original function used to generate the data
+%    plot(dataout(:,1), dataout(:,2), '.blue',dataout(:,1),dataout(:,3),...
+%       '-black', x, 10*sin(x), 'REPLACE_WITH_DASH_DASHred')
+%    grid on
+%
+%% Description
+%
+% Using a robust regression like LOWESS allows one the ability to detect a
+% trend in data that may otherwise have too much variance resulting in
+% non-significance p-values.
+%
+% Yhat (prediction) is computed from a weghted least squares regression
+% whose weights are both a function of distance from X and magnitude
+% from of the residual from the previous regression.
+%
+% The conceptual of these functions and subfunctions follow the USGS
+% Kendall.exe routines. Because matlab is 8-byte precision, there are
+% some very small differences between FORTRAN compiled and matlab.
+% Maybe 64-bit OS's has 16-byte precision in matlab?
+%
+% There is a very simple subfunction to create a plot of the data and
+% regression if the user so choses with a flag in the call to the lowess
+% function. BTWREPLACE_WITH_DASH_DASH the png file looks much better than what the figure looks
+% like on screen.
+%
+% There are loops in these routines to keep the memory requirements to a
+% minimum, since it is foreseeable that one may have very large datasets to
+% work with.
+%
+% f = a smoothing factor between 0 and 1.  The closer to one, the more
+% smoothing done.
+%
+% Syntax:
+%
+%   [dataout lowerLimit upperLimit xy] = lowess(datain,f,wantplot,imagefile,xdata)
+%
+%   datain = n x 2 (or 3 if sequend index is included) matrix
+%   dataout = n x 3 matrix
+%   wantplot = scaler (optional)
+%        if ~= 0 then create plot
+%   imagefile = full path and file name where to output the figure to an
+%        png file type at 600 dpi. If imagefile not provided, a figure will
+%        be displayed but not exported to a graphics file.
+%        e.g. imagefile = 'd:\temp\lowess.png';
+%   xdata = n x 1 vector. The user can supply a second dataset of x-values
+%        that will be used to predict y-values using the lowess regression
+%        results.
+%   xy = x-values supplied by the user in xdata (or taken from the input 
+%        data), and y-predictions using the lowess regression results.  If
+%        a sequence index is given this will be included as well and
+%        inserted as the first column and the last two columns are the
+%        lower and upper simulations using the regression lower and upper
+%        restuls.
+%
+% where:
+%
+%  *  datain(:,1) = x
+%  *  datain(:,2) = y
+%  *  f = scaler (0 < f < 1)
+%  *  wantplot = scaler
+%  *  imagefile = string
+%
+%  *  dataout(:,1) = x
+%  *  dataout(:,2) = y
+%  *  dataout(:,3) = y-prediction (aka yhat)
+%  *  lowerLimit(:,1) = x with negative residuals
+%  *  lowerLimit(:,2) = y-prediction of residuals + original y-prediction
+%  *  upperLimit(:,1) = x with positive residuals
+%  *  upperLimit(:,2) = y-prediction of residuals + original y-prediction
+%
+% Requirements:  none
+%
+% Written by
+%
+%  Jeff Burkey
+%  King County Department of Natural Resources and Parks
+%  email: jeff.burkey@kingcounty.gov
+%  12/16/2008
+% 
+% Example syntax:
+% [dataout lowerLimit upperLimit xy] = lowess(skl1a,.25,1,'c:\temp\test.png',xdata)
+
+%% Primary Function: lowess
+% The main engine for this function. 
+function [dataout lowerLimit upperLimit xy] = lowess(datain,f,wantplot,imagefile,xdata)
+    
+    % start timer
+    start = tic;
+    
+    rowcol = size(datain);
+    
+    if rowcol(2) == 3
+        % assume time index for first column
+        dte = datain(:,1);
+        x_data = datain(:,2);
+        y_data = datain(:,3);
+    else % assign empty set
+        dte = [];
+        x_data = datain(:,1);
+        y_data = datain(:,2);
+    end
+    
+    if exist('xdata','var') == 0 
+        % User didn't provide any x-valures for generating a dataset use
+        % supplied set prior to sorting.
+        xdata = [dte x_data];
+    else
+        xdata = [dte xdata];
+    end
+    
+    
+    datain = sortrows([x_data y_data]);
+    
+    if exist('wantplot','var') == 0 || wantplot == 0
+        % user didn't provide assume zero (i.e. no plot)
+        fprintf('\nNo plot will be created.\n');
+        wantplot = 0;
+        imagefile = '';
+        limits = 1;
+        upperLimit = nan;
+        lowerLimit = nan;
+    else
+        limits = 3;
+    end
+    if exist('imagefile','var') == 0
+        % User didn't provide do not export to graphics file
+        fprintf('\nNo plot will be exported.\n');
+        imagefile = '';
+    end
+    
+    dataout = [];
+    
+    for nplots=1:limits
+        % if limits is turned on, then plot the upper and lower limits of
+        % the lowess- set to plot residuals lowess
+        row = find(datain(:,1));
+        x = datain(row,1);
+        y = datain(row,2);
+        
+        switch nplots
+            case 2
+                row = lwsResiduals > 0;
+                x = dataout(row,1);
+                y = lwsResiduals(row);
+            case 3
+                row = lwsResiduals < 0;
+                x = dataout(row,1);
+                y = lwsResiduals(row);
+        end
+        
+        n = length(x);
+        
+        if (f <= 0.0)
+            f=0.25; % set to default
+        end
+        
+        m=fix(n*f+0.5);
+        window = zeros(n,1);
+        yhat = zeros(n,1);
+        
+        for j=1:n
+            % This could be done in a matrix, but need to keep memory footprint
+            % small, thus the loop.
+            d = abs(x- x(j));
+            r1 = ones(n,1);
+            d = sort(d);
+            
+            window(j)=d(m);
+            yhat(j)= rwlreg(x,y,n,window(j),r1,x(j));
+        end
+        
+        for it=1:2
+            e = abs(y-yhat);
+            
+            n = length(e);
+            s=median(e);
+            
+            r = e/(6*s);
+            r = 1-r.^2;
+            r = max(0.d0,r);
+            r = r.^2;
+            
+            for j=1:n
+                yhat(j)= rwlreg(x,y,n,window(j),r,x(j));
+            end
+        end
+        
+        switch nplots
+            case 1
+                % calculate residuals otherwise skip
+                lwsResiduals = y - yhat;
+                dataout = [x y yhat];
+            case 2
+                ul = [x y yhat];
+                [~, ia, ib] = intersect(dataout(:,1),ul(:,1));
+                upperLimit = [ul(ib,1) ul(ib,3) + dataout(ia,3)];
+                clear ul c ia ib
+            case 3
+                ll = [x y yhat];
+                [~, ia, ib] = intersect(dataout(:,1),ll(:,1));
+                lowerLimit = [ll(ib,1) ll(ib,3) + dataout(ia,3)];
+                clear ul c ia ib
+        end
+    end
+    
+    fprintf('\nCompute time %6.4f seconds.\n',toc(start));
+    
+    %% Generate predicted XY data
+    % Using linear interpolation to estimate y from the lowess regression
+    % Any x-values beyond the range given to generate the lowess will be
+    % ignorged.  Matlab unique function sorts the data, thus a modified
+    % unique function (usunique) was developed to return an unsorted vector.
+    %
+    % This limiting of the interpolation is done because if there are data
+    % beyond the regression range it may not be valid to use a different
+    % regression for an extrapolation.  But users choice.
+    if ~isempty(xdata)
+        xyd = [dataout(:,1) dataout(:,3)];
+        xyd = unique(xyd,'rows');
+        xd = xdata;
+        
+        % The below two lines are commented out to allow for extrapolations
+        %         xd = xdata(xdata >= min(xyd(:,1)));
+        %         xd = xd(xd <= max(xyd(:,1)));
+        
+        if ~isnan(xyd)
+            % Note:  it may be possible to have a few nan's in the data set
+            % while the results would still be valid.  I haven't come
+            % across a case of this but is possible.  If so, then the user
+            % may need to incorporate a threshold of just how many nan's
+            % would be acceptable before dumping the whole regression.  But
+            % to be conservative, if there are any nan's throw out the
+            % whole result dataset.
+            %
+            % Note: change LINEAR to SPLINE, this will allow for
+            % extrapolations, BUT using the SPLINE function now.
+            xd = unique(xd,'rows');
+            
+            % Needed to account for useing including time sequence or not.
+            %  modified June 15, 2012
+            [~, c] = size(xd);
+            if c == 2
+                xv = xd(:,2);
+            elseif c == 1
+                xv = xd;
+            end
+
+            yinterp = interp1(xyd(:,1),xyd(:,2),xv,'spline');
+            if wantplot ~= 0
+                ylow = interp1(lowerLimit(:,1),lowerLimit(:,2),xv,'spline');
+                yup =  interp1(upperLimit(:,1),upperLimit(:,2),xv,'spline');
+                xy = [dte xv yinterp ylow yup];
+            else
+                xy = [dte xv yinterp];
+            end
+            
+            
+            if length(xd) ~= length(xdata)
+                fprintf('\nOne or more x-values were beyond the range supplied to lowess.\nOr there were duplicate values.\nThey will be ignored.\n');
+            end
+        else
+            fprintf('\nThere were NaNs in the lowess results. No plot will be created.\n');
+            wantplot = 0;
+            xy = nan;
+        end
+    end
+    
+    if wantplot ~= 0
+        customplot(dataout,upperLimit,lowerLimit,f,[dte x_data y_data],xy,imagefile);
+    end
+    
+end
+
+%% Modification of check for ten or more non-zero weights
+% Hirsch June 1987
+%
+% Robust weighted least squares regression, bisquare weights by
+%         distance on X-axis.
+%   x = is the estimation point
+%   yy = is the estimate value of y at x
+%   dd = is half the width of the window
+%   r = is the robustness weight, a bisquare weight of residuals.
+function [yy] = rwlreg(x,y,n,d,r,xx)
+    dd=d;
+    ddmax = abs(x(n) - x(1));
+    if dd == 0.0
+        error('Regression:lowess','LOWESS window size = 0. Increase f.');
+    else
+        while dd <= ddmax
+            c = 0;
+            total = 0.0;
+            f = (abs(x-xx)/dd);
+            f = 1.0-f.^3;
+            w = ((max(0.d0,f)).^3).*r;
+            total = sum(w);
+            c = sum(w>0);
+            if c > 3
+                break % out of while loop
+            else
+                dd=1.28*dd;
+                fprintf('\nrobust size of window = %5.0f.\nLowess window size increased to %3.2f\n', c, dd);
+            end
+        end
+    end
+    
+    w = w/total;
+    
+    [a b] = wlsq(x,y,w);
+    yy=a+b*xx;
+end
+
+%% Weighted least squares
+% This subfunction does not require any toolboxes in matlab to execute.
+function[a b] = wlsq(x,y,w)
+    sumw = abs(1-sum(w));
+    if sumw > 1e-10
+        % The weights, w, must sum to one. Precision assuming type double,
+        %    The user may want to adjust this value.
+        error('Regression:wlsq','\nThere is an error in the weights.\nWeights do not equal zero (%10.9f).\n',sumw);
+    end
+    wxx = sum(w.*x.^2);
+    wx = sum(w.*x);
+    wxy = sum(w.*x.*y);
+    wy = sum(w.*y);
+    b = (wxy-wy*wx)/(wxx-wx^2);
+    a = wy-b*wx;
+end
+
+%% Plotting of data and lowess regression line
+% If a sequence vector is included in the data, the figure will contain two
+% subplots.  The first one is the LOWESS regression of the data, the second
+% plots the time in the original sequence using the first column of input
+% data. Example a datenum for when the data were observed would be common.
+% The second plot will plot the observed Y-data and the predicted Y-data.
+function customplot(lws,uplmt,lwrlmt,f,oldxy,newxy,imgfile)
+    figure1 = figure;
+    
+    try
+        rowcol = size(newxy);
+        if rowcol(2) == 5 % Users provided a sequence index e.g. Datenum
+            % The second subplot id defined first as a matter of
+            % readability in the code.  This Conditional segment will not
+            % be executed if no sequence index is provided (e.g. datetime).
+            subplot(2,2,3:4,'Parent',figure1,...
+                'YScale','linear','YMinorTick','off',...
+                'XScale','linear','XMinorTick','on',...
+                'YMinorGrid','off',...
+                'XMinorGrid','on');
+            box('on');
+            grid('on');
+            hold('all');
+            
+            line(oldxy(:,1),oldxy(:,3),'LineStyle','none', ...
+                'Marker','o','MarkerSize',7,...
+                'MarkerEdgeColor','k',...
+                'MarkerFaceColor','b',...
+                'DisplayName','Observed');
+            
+            line(newxy(:,1),newxy(:,3),'LineStyle','-', ...
+                'LineWidth',2,'Color','r',...
+                'DisplayName','Simulated');
+
+            line(newxy(:,1),newxy(:,4),'LineStyle',':', ...
+                'LineWidth',2,'Color','m',...
+                'DisplayName','Lower');
+
+            h = line(newxy(:,1),newxy(:,5),'LineStyle',':', ...
+                'LineWidth',2,'Color','g',...
+                'DisplayName','Upper');
+
+            % The below lines are commented out, but for convenience
+            % uncomment if one wants to make the upper and lower lines the
+            % same color, you can not have duplicate symbols in the legend.
+%             hAnnotation = get(h,'Annotation');
+%             hLegendEntry = get(hAnnotation','LegendInformation');
+%             set(hLegendEntry,'IconDisplayStyle','off');
+            
+            ylabel('y-Values');
+            xlabel('Sequence Index (e.g. datenum)');
+            title('Simulated y-Values using LOWESS Regression');
+            
+            % Create legend - although I'm not overly pleased using the default
+            % location of placement.  I want it outside the grid, but the
+            % default without manually describing locations this will have to
+            % do for now.  Placing them inside the grid yields the most
+            % reelestate, but the lenged box possibly could cover up data.
+            legend('show','Location','EastOutside');
+            
+            hold('off');
+            
+            % This is the primary plot that will be generate either from
+            % this conditional statement or in the ELSEIF below. They are
+            % exact same except for defining Subplot space as either two
+            % plots or one.
+            subplot(2,2,1:2,'Parent',figure1,...
+                'YScale','linear','YMinorTick','off',...
+                'XScale','linear','XMinorTick','on',...
+                'YMinorGrid','off',...
+                'XMinorGrid','on');
+        elseif rowcol(2) == 2
+            % No sequence index is given, second plot would be identical to
+            % first plot.  Define plot to occupy space of both subplots.
+            % This could be revised and not even call it a subplot, but for
+            % consistency it is.
+            subplot(2,1,1:2,'Parent',figure1,...
+                'YScale','linear','YMinorTick','off',...
+                'XScale','linear','XMinorTick','on',...
+                'YMinorGrid','off',...
+                'XMinorGrid','on');
+        end
+        
+        box('on');
+        grid('on');
+        hold('all');
+        
+        x = lws(:,1);
+        y = lws(:,2);
+        yh = lws(:,3);
+        
+        % Point plot of points of the observed data on the LOWESS plot
+        line(x,y,'LineStyle','none', ...
+            'Marker','o','MarkerSize',7,...
+            'MarkerEdgeColor','k',...
+            'MarkerFaceColor','b',...
+            'DisplayName','Observed');
+        
+        % Line plot of the LOWESS regression
+        line(x,yh, 'Color','r', 'LineWidth',2, 'LineStyle','-', ...
+            'DisplayName','Regression' ...
+            );
+        
+        
+        x = uplmt(:,1);
+        yh = uplmt(:,2);
+        
+        % Line plot of the upper limit LOWESS regression
+        line(x,yh, 'Color', 'r', 'LineWidth',2,'LineStyle',':', ...
+            'DisplayName','Upper/Lower' ...
+            );
+        
+        x = lwrlmt(:,1);
+        yh = lwrlmt(:,2);
+        
+        % Line plot of the lower limit LOWESS regression
+        h = line(x,yh, 'Color', 'r', 'LineWidth',2,'LineStyle',':', ...
+            'DisplayName','Lower' ...
+            );
+        hAnnotation = get(h,'Annotation');
+        hLegendEntry = get(hAnnotation','LegendInformation');
+        set(hLegendEntry,'IconDisplayStyle','off');
+        
+        grid on
+        xlabel('x-Values')
+        ylabel('y-Values')
+        ts = strcat('LOWESS Regression plot f=',num2str(f));
+        title(ts)
+
+        % Create legend - although I'm not overly pleased using the default
+        % location of placement.  I want it outside the grid, but the
+        % default without manually describing locations this will have to
+        % do for now.  Placing them inside the grid yields the most
+        % real-estate, but the lenged box possibly could cover up data.
+        legend('show','Location','EastOutside');
+
+        hold('off');
+        
+        if ~isempty(imgfile)
+            % If a filename is give for the plot, create a PNG file.
+            fprintf('\nCreating plot. Give a few tics.\n');
+            print('-dpng','-r600', imgfile);
+            fprintf('\nFinished...\n');
+        end
+        
+        close(figure1)
+    catch ME1
+        disp(ME1)
+    end
+end
+
+##### SOURCE END #####
+--></body></html>
