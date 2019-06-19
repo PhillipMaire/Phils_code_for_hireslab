@@ -1,7 +1,6 @@
 %% 2013MakeFakeContactArrays
-
 %%%% in the autosave contact program change as needed 
-autoSaveDir = 'Z:\Users\Phil\Data\Characterization\autoSAVEcontacts\';
+autoSaveDir = 'C:\Users\maire\Dropbox\HIRES_LAB\PHIL\Data\Characterization\autoSAVEcontacts\';
 
 
 % characterizationDir = 'Z:\Users\Phil\Data\Characterization\';
@@ -12,7 +11,7 @@ autoSaveDir = 'Z:\Users\Phil\Data\Characterization\autoSAVEcontacts\';
 %%%%have all the data here at onece
 %%%%
 
-finalDir = 'Z:\Users\Phil\Data\Characterization\FINAL TRIAL ARRAYS';
+finalDir = 'C:\Users\maire\Dropbox\HIRES_LAB\PHIL\Data\Characterization\S1ForJon2\TArrays';
 cd(finalDir)
 dirlistTarrays = dir(finalDir);
 TarrayNames = cell(0);
@@ -59,7 +58,8 @@ for k = 1:length(runTheseTarrays)
     
       load(runTheseTarrays{k});
     trialContactBrowserAutoSave(T);
-    
+    crush
+    trialContactBrowserAutoSave(T, contacts) % to set the correct parameters 
     close all
     
     pause(5)
