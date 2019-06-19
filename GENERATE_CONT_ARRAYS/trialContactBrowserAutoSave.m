@@ -15,7 +15,7 @@
 % Version 1.0 SAH 140514
 
 function trialContactBrowserAutoSave(array, contacts, params, varargin)
-autoSaveDir = 'Z:\Users\Phil\Data\Characterization\autoSAVEcontacts\';
+ autoSaveDir = 'C:\Users\maire\Dropbox\HIRES_LAB\PHIL\Data\Characterization\autoSAVEcontacts\';
 
 if nargin <4
     if nargin==1
@@ -41,8 +41,8 @@ if nargin <4
         params.touchThresh = [.1 .1 .1 .1]; %Touch threshold for go (protraction, retraction), no-go (protraction,retraction). Check with Parameter Estimation cell
         params.goProThresh = 0; % Mean curvature above this value indicates probable go protraction, below it, a go retraction trial.
         params.nogoProThresh = 0; % Mean curvature above this value indicates probable nogo protraction, below it, a nogo retraction trial.
-        params.poleOffset = .50; % Time where pole becomes accessible
-        params.poleEndOffset = .195; % Time between start of pole exit and inaccessiblity
+        params.poleOffset = .031 -array.whiskerTrialTimeOffset; % Time where pole becomes accessible
+        params.poleEndOffset = .1; % Time between start of pole exit and inaccessiblity
         params.tid=0; % Trajectory id
         params.framesUsed=1:length(array.trials{find(array.whiskerTrialInds,1)}.whiskerTrial.time{1});
         params.curveMultiplier=1.5;
@@ -78,6 +78,7 @@ if nargin <4
         else
             params.spikeDataType = 'none';
         end
+        [contacts, params]=autoContactAnalyzerSi(array, params, contacts);
         
     end
     
