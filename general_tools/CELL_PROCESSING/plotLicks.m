@@ -2,10 +2,10 @@
 function plotLicks(trialNums, sweepBeamBreakTimes)
 for k = trialNums
 
-position = 15;
+position1 = 15;
 licks = sweepBeamBreakTimes{k};
 if sweepBeamBreakTimes{k}>0
-plot(licks, position*ones(numel(licks),1),'+b')
+plot(licks, position1*ones(numel(licks),1),'+b')
 for kk = 1: numel(sweepBeamBreakTimes{k})
 plot( repmat(licks(kk),2,1), [-5,10], 'b')
 end
@@ -21,6 +21,7 @@ while true
               switch key
                   case 13 % 13 is the return key 
                       disp('User pressed the return key. Quitting the loop.')
+                      fprintf('\n number %d\n', k)
                       break
                   otherwise 
                       % Wait for a different command. 
