@@ -1,13 +1,14 @@
-function follicle_n_mask_single_whisker(mouseName,sessionName,videoloc,varargin)
+function follicle_n_mask_single_whisker(mouseName,sessionName,videoloc,inflate_rate,varargin)
 % Jinho made this on 6/10/17 to auto draw a mask on his two whisker view
 % videos. previously named follicle_n_mask.m, I renamed it to edit and make
 % it work with single whisker on 6/20/17 -Phil
 
 %% Setup whisker array builder 
 %%%% Z:\Data\Video\AHHD_009\AH0698\170601
-mouseName = 'AH0698'
- sessionName = '170606';
- videoloc =  'AHHD_009';
+% mouseName = 'AH0762'
+% sessionName ='171012'
+% videoloc = 'JON'
+
 numOfWhiskers = 1;
 % % % % % % if nargin > 3
 % % % % % %     optional = varargin{4};
@@ -15,12 +16,12 @@ numOfWhiskers = 1;
 % % % % % %     error('Too many input arguments')
 % % % % % % end
 
-if exist('optional','var')
-    d = (['Z:\Data\Video\' videoloc filesep mouseName filesep sessionName filesep optional filesep])
-else
-    d = (['Z:\Data\Video\' videoloc filesep mouseName filesep sessionName filesep])
-end
-cd(d)
+% if exist('optional','var')
+%     d = (['E:\' videoloc filesep mouseName filesep sessionName filesep optional filesep])
+% else
+%     d = (['E:\' videoloc filesep mouseName filesep sessionName filesep])
+% end
+cd(videoloc)
 
 maskfn = [mouseName sessionName 'follicle_n_mask.mat'];
 % if exist(maskfn,'file')
@@ -28,51 +29,51 @@ maskfn = [mouseName sessionName 'follicle_n_mask.mat'];
 %     return
 % end
 
-number_of_random_trials = 20; % for averaging for mask detection
-inflate_rate = 1.02;
+number_of_random_trials = 8; % for averaging for mask detection
+% inflate_rate = .96;
 
 %% Follicle
 flist = dir('*.mp4');
-v = VideoReader(flist(50).name);
+v = VideoReader(flist(2).name);
 follicle_first = zeros(2,2);
 width = v.Width; height = v.Height; % to save these parameters
 vavg = zeros(height,width);
-for i = 1 %: v.NumberOfFrames
-    vtemp = read(v,i);    
-    vtemp = double(vtemp(:,:,1));
-    vavg = vavg + vtemp/1;%v.NumberOfFrames;
-end
-vavg = mat2gray(vavg);
-figure('units','normalized','outerposition',[0 0 1 1]), imshow(vavg,'InitialMagnification','fit'), axis off, axis image, title('Select follicle points, first top-view, and then front-view'), hold all
-
-i = 1;
-while (i < 3)
-    [y, x] = ginput(1);
-    obj_h = scatter(y, x, 'mo');
-    if numOfWhiskers == 1
-        button = questdlg('is this correct?', 'follicle', 'Yes', 'No', 'Cancel', 'Yes');
-        i =2;
-    elseif numOfWhiskers == 2
-        if i == 1
-            button = questdlg('is this correct?', 'Top-view follicle', 'Yes', 'No', 'Cancel', 'Yes');
-        else
-            button = questdlg('is this correct?', 'Front-view follicle', 'Yes', 'No', 'Cancel', 'Yes');
-        end
-    end
-    switch button
-        case 'Yes'
-            follicle_first(i,2)= y; follicle_first(i,1) = x;
-            i = i + 1;
-            scatter(y, x, 'go');
-        case 'No'
-            delete(obj_h);
-            continue
-        case 'Cancel'
-            disp('measurements adjustment aborted')
-            return
-    end
-end
-
+% for i = 1 %: v.NumberOfFrames
+%     vtemp = read(v,i);    
+%     vtemp = double(vtemp(:,:,1));
+%     vavg = vavg + vtemp/1;%v.NumberOfFrames;
+% end
+% vavg = mat2gray(vavg);
+% figure('units','normalized','outerposition',[0 0 1 1]), imshow(vavg,'InitialMagnification','fit'), axis off, axis image, title('Select follicle points, first top-view, and then front-view'), hold all
+% 
+% i = 1;
+% while (i < 3)
+%     [y, x] = ginput(1);
+%     obj_h = scatter(y, x, 'mo');
+%     if numOfWhiskers == 1
+%         button = questdlg('is this correct?', 'follicle', 'Yes', 'No', 'Cancel', 'Yes');
+%         i =2;
+%     elseif numOfWhiskers == 2
+%         if i == 1
+%             button = questdlg('is this correct?', 'Top-view follicle', 'Yes', 'No', 'Cancel', 'Yes');
+%         else
+%             button = questdlg('is this correct?', 'Front-view follicle', 'Yes', 'No', 'Cancel', 'Yes');
+%         end
+%     end
+%     switch button
+%         case 'Yes'
+%             follicle_first(i,2)= y; follicle_first(i,1) = x;
+%             i = i + 1;
+%             scatter(y, x, 'go');
+%         case 'No'
+%             delete(obj_h);
+%             continue
+%         case 'Cancel'
+%             disp('measurements adjustment aborted')
+%             return
+%     end
+% end
+% 
 
 drawnow;
 
@@ -80,18 +81,20 @@ drawnow;
 
 randlist = randi(length(flist), 1, number_of_random_trials);
 if exist('parfor','builtin')
-    vstack = zeros(v.Height,v.Width,number_of_random_trials);
+    
     parfor i = 1 : number_of_random_trials
         v = VideoReader(flist(randlist(i)).name);
         temp_vavg = zeros(v.Height,v.Width);
         nof = fix(v.FrameRate*v.Duration); % number of frames
-        for iter = 1 %: v.NumberOfFrames
+        for iter = 1 : 50 : nof %v.NumberOfFrames
             vtemp = read(v,i);
             vtemp = double(vtemp(:,:,1));
-            vavg = vavg + vtemp/1;%v.NumberOfFrames;
+            vavg = vavg + vtemp;%v.NumberOfFrames;
         end
     end
-    vavg = mean(vstack,3);
+    
+    vavg = mean(vavg,3);
+    
 else
     vavg = zeros(v.Height,v.Width);
     for i = 1 : number_of_random_trials
@@ -106,6 +109,7 @@ else
         vavg = vavg + temp_vavg/number_of_random_trials;
     end
 end
+%%
 vavg_filt = imgaussfilt(vavg,3);
 
 
@@ -113,32 +117,25 @@ vavg_filt = imgaussfilt(vavg,3);
 
 
 H = fspecial('disk',10);
-blurred = imfilter(vavg,H,'replicate'); 
-figure
-imshow(blurred);
+blurred = imfilter(vavg_filt,H,'replicate'); 
+figure(830), imshow(mat2gray(blurred))
 
 
 
 
+maskx = {[]};
+masky = {[]};
 
-
-
-
-
-vavg_filt =  fspecial('gaussian', size(vavg), 20);
-maskx = {[],[]};
-masky = {[],[]};
-
-vavg_inflate = imresize(vavg_filt,inflate_rate);
+vavg_inflate = imresize(blurred,inflate_rate);
 BW = edge(vavg_inflate,'Prewitt');
 [edge_i,edge_j] = ind2sub(size(BW),find(BW));
 top_ind = find(edge_j >= size(BW,2)/2);
 edge_i = edge_i - size(BW,2) + size(vavg,2);
 edge_j(top_ind) = edge_j(top_ind) - (size(BW,1) - size(vavg,1))*(sind(21)/sind(45)); % 21 degrees tilted
-scatter(edge_j,edge_i,3,'mo');
+hold on;scatter(edge_j,edge_i,3,'mo');
 
 i = 1;
-while (i < 3)            
+while (i < 2)            
     temp_ind = zeros(2,1);
     for j = 1 : 2
         [x, y] = ginput(1);
@@ -158,6 +155,22 @@ while (i < 3)
     [mask_i,mask_j] = ind2sub(size(vavg),find(bl == bl(temp_i(1),temp_j(1)) | bl == bl(temp_i(end),temp_j(end))));
 
     obj_h = scatter(mask_j,mask_i,3,'bo');
+            maskx{i} = mask_j;
+            masky{i} = mask_i;
+     
+            qnum = length(mask_j);
+            polyDegree = 2;
+            mask_j = mask_j'; mask_i = mask_i';
+            q = (0:(qnum-1))./(qnum-1);
+            px = Whisker.polyfit(q,mask_j,polyDegree);
+            py = Whisker.polyfit(q,mask_i,polyDegree);
+            q = linspace(0,1);
+%             x = polyval(px,q); uncomment this if you want a 2nd order
+%             polynomial fit instead of using the inflated mask
+%             y = polyval(py,q);
+%             plot(x,y,'g-','LineWidth',2)
+%                 maskx{i} = x;
+%             masky{i} = y;
     drawnow;
     if i == 1
         button = questdlg('is this correct?', 'Top-view mask', 'Yes', 'No', 'Cancel', 'Yes');
@@ -166,19 +179,7 @@ while (i < 3)
     end
     switch button
         case 'Yes'
-            maskx{i} = mask_j;
-            masky{i} = mask_i;
 
-            qnum = length(mask_j);
-            polyDegree = min([qnum-1,6]);
-            mask_j = mask_j'; mask_i = mask_i';
-            q = (0:(qnum-1))./(qnum-1);
-            px = Whisker.polyfit(q,mask_j,polyDegree);
-            py = Whisker.polyfit(q,mask_i,polyDegree);
-            q = linspace(0,1);
-            x = polyval(px,q);
-            y = polyval(py,q);
-            plot(x,y,'g-','LineWidth',2)
 
             i = i + 1;
         case 'No' 
@@ -191,5 +192,6 @@ while (i < 3)
 end
 
 %% save mask
-
+close(830)
 save(maskfn,'maskx','masky','width', 'height', 'follicle_first')
+yay
