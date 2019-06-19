@@ -1,71 +1,101 @@
 
 %% actual bar tracker
-function barTracker_SAH_mega_part2(fileToLoadVars)
-load([fileToLoadVars, '_part1']);
-load([fileToLoadVars, '_part2']);
-
+function barTracker_SAH_mega_part2(fileToLoadVars, d2, skipFilesThatExist)
+try
+    load([fileToLoadVars, '_part1']);
+    load([fileToLoadVars, '_part2']);
+catch
+    cd(d2)
+    tmp1 = (dir('*_part1*'));
+    load(tmp1.name);
+    tmp1 = (dir('*_part2*'));
+    load(tmp1.name);
+end
+movie_files2= struct2cell(dir([d2 filesep '*.mp4']));
+movie_files  = movie_files2(1,: );
 ci=zeros(2*cs+1, 2*cs+1, length(movie_files)); %preallocate memory
 
 
 hh=waitbar(0,'correlating', 'Position', 1000* [0.1    0.1    0.2700    0.0563]);
 sp=figure('position', [200 200 20*cs 20*cs]);
-
+noFileIndicator = 1;
 % save(saveName);
 for i=1:length(movie_files)
+    
     if ~exist(movie_files{i}, 'file')
-        error(['file ', movie_files{i}, ' doesnt exist... perhaps you ran "delete not 4000 frame videos" program after finding pole positions, run pole positions again']) 
+        error(['file ', movie_files{i}, ' doesnt exist... perhaps you ran "delete not 4000 frame videos" program after finding pole positions, run pole positions again'])
     end
     waitbar(i/length(movie_files),hh,['correlating...'  num2str(i) '..of..' num2str(length(movie_files))] );
-    i
-    %clf;
-    if strcmp(movie_files{1}(end-2:end), 'mp4')
+    disp(movie_files{i})
+    pause(0.005);
+    [~, gg, ~] = fileparts([d2 filesep movie_files{i}]);
+    if skipFilesThatExist==1 && isfile([d2 filesep gg '.bar'])
+        fprintf(' ...skipping ')
+    else
+        noFileIndicator = 0;
+        %clf;
+        if strcmp(movie_files{1}(end-2:end), 'mp4')
+            try
+                cd(slider.path)
+                f=mmread([movie_files{i}], slider.val);
+                iii=f.frames(1).cdata(:,:,1);
+                
+            catch
+                
+                warning('MP4 didn''t have the frame requested, likely becasue it isnt 4000 frames, defaulting ot fram 1')
+                cd(slider.path)
+                f=mmread([movie_files{i}], 1);
+                iii=f.frames(1).cdata(:,:,1);
+                
+            end
+            %         f=mmread(slider.filename, slider.val);
+            %          ii=f.frames(1).cdata(:,:,1);
+        elseif strcmp(movie_files{1}(end-2:end), 'seq')
+            
+            [seq_info, fid] = read_seq_header(slider.filename);
+            f = read_seq_images(seq_info, fid, slider.val);
+            iii=f;%f.frames(1).cdata(:,:,1);
+            
+        end
         
-        f=mmread([slider.path movie_files{i}], slider.val);
-        iii=f.frames(1).cdata(:,:,1);
-        %         f=mmread(slider.filename, slider.val);
-        %          ii=f.frames(1).cdata(:,:,1);
-    elseif strcmp(movie_files{1}(end-2:end), 'seq')
         
-        [seq_info, fid] = read_seq_header(slider.filename);
-        f = read_seq_images(seq_info, fid, slider.val);
-        iii=f;%f.frames(1).cdata(:,:,1);
         
+        frame_num(i)=abs(slider.f.nrFramesTotal); %frame number to generate bar file
+        
+        cor=normxcorr2(cropped_image, iii);
+        [a b]= max(max(cor, [], 1));
+        [c d]= max(max(cor, [], 2));
+        
+        
+        
+        final_pos(i, 1)=b-cs;
+        final_pos(i, 2)=d-cs;
+        
+        cor(d, b)
+        if cor(d, b)<0.88
+            final_pos(i, 1)=100-cs;
+            final_pos(i, 2)=100-cs;
+            disp('set bar to corner')
+        end
+        
+        
+        %              figure; imagesc(cor);colormap('gray')
+        %         figure; mesh(cor);
+        
+        ci(:,:, i)=iii( final_pos(i, 2)-cs:final_pos(i, 2)+cs, final_pos(i, 1)-cs:final_pos(i, 1)+cs);
+        
+        figure(sp);
+        subplot(2,1,1);imagesc(iii);colormap('gray');
+        
+        subplot(2,1,2); imagesc(ci(:,:,i)); colormap('gray');hold on;
+        h3=rectangle ('position', [1 1 cs*2 cs*2], 'curvature', [1, 1], 'LineWidth', 2, 'EdgeColor', 'r');
+        plot(cs+1, cs+1, 'ro');
+        set(sp, 'Name', [movie_files{i}]);
+        %pause
     end
-    
-    
-    
-    frame_num(i)=abs(slider.f.nrFramesTotal); %frame number to generate bar file
-    
-    cor=normxcorr2(cropped_image, iii);
-    [a b]= max(max(cor, [], 1));
-    [c d]= max(max(cor, [], 2));
-    
-    
-    
-    final_pos(i, 1)=b-cs;
-    final_pos(i, 2)=d-cs;
-    
-    cor(d, b)
-    if cor(d, b)<0.88
-        final_pos(i, 1)=100-cs;
-        final_pos(i, 2)=100-cs;
-        disp('set bar to corner')
-    end
-    
-    
-    %              figure; imagesc(cor);colormap('gray')
-    %         figure; mesh(cor);
-    
-    ci(:,:, i)=iii( final_pos(i, 2)-cs:final_pos(i, 2)+cs, final_pos(i, 1)-cs:final_pos(i, 1)+cs);
-    
-    figure(sp);
-    subplot(2,1,1);imagesc(iii);colormap('gray');
-    
-    subplot(2,1,2); imagesc(ci(:,:,i)); colormap('gray');hold on;
-    h3=rectangle ('position', [8 8 16 16 ], 'curvature', [1, 1], 'LineWidth', 2, 'EdgeColor', 'r');
-    plot(cs, cs, 'ro');
-    set(sp, 'Name', [movie_files{i}]);
-    %pause
+end
+if noFileIndicator ==1 && skipFilesThatExist==0
+    error('no files to track, you have overwrive off')
 end
 close(hh)
 close(sp)
@@ -83,7 +113,7 @@ hold on; plot(final_pos(:,1),final_pos(:,2), 'ro');
 % % cc=questdlg('review locations', 'review');
 % % switch cc
 % %     case 'Yes'
-% %         
+% %
 % %         hhh=figure('position', [200 200 20*cs 20*cs]);
 % %         pause on;
 % %         for i=1:size(ci, 3)
@@ -94,40 +124,40 @@ hold on; plot(final_pos(:,1),final_pos(:,2), 'ro');
 % %             set(hhh, 'Name', [movie_files{i}]);
 % %             i
 % %             pause(0.2)
-% %             
+% %
 % %         end
 % %         close (hhh)
 % %         pause off
-% %         
-% %         
+% %
+% %
 % %     case 'No'
 % % end
 %% save the bar files
 
 % aa=questdlg('Save to bar files? Will overwrite and existing bar file! ', 'Save?');
 % close(h6);
-% 
+%
 % switch aa
 %     case 'Yes'
 %         %save the files
-%         
-        disp('Saving all bar files (automatically overwrites)')
-        for i=1:length(movie_files)
-            %i=3
-            i
-            bm=[];
-            bm(:, 2:3)=repmat(final_pos(i, :),  frame_num(i), 1);
-            bm(:, 1)=[1: frame_num(i)]';
-            barname{i}=[movie_files{i}(1:end-4), '.bar'];
-            fid=fopen(barname{i}, 'wt');
-            fprintf(fid, '%u %4.4f %4.4f \n', bm');
-            %sprintf('%u %4.4f %4.4f \n', bm')
-            fclose(fid);
-            
-        end
-        disp('done')
-        
-        
+%
+disp('Saving all bar files (automatically overwrites)')
+for i=1:length(movie_files)
+    %i=3
+    i
+    bm=[];
+    bm(:, 2:3)=repmat(final_pos(i, :),  frame_num(i), 1);
+    bm(:, 1)=[1: frame_num(i)]';
+    barname{i}=[movie_files{i}(1:end-4), '.bar'];
+    fid=fopen(barname{i}, 'wt');
+    fprintf(fid, '%u %4.4f %4.4f \n', bm');
+    %sprintf('%u %4.4f %4.4f \n', bm')
+    fclose(fid);
+    
+end
+disp('done')
+
+
 %     case 'No'
 %         disp('done')
 % end

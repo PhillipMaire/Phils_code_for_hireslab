@@ -1,7 +1,9 @@
 function [saveName] = barTracker_SAH_mega(varargin)
+global joySTK
+joySTK = [0 0];
 
 saveDir = 'D:\backup\Users\Phil\Data\BARtrackerSaves';
-nextSet =0; 
+nextSet =0;
 if nargin ==0
     [b a] = uigetfile({'*.mp4'; '*.seq'}, 'select a movie mp4 or seq');
     
@@ -12,7 +14,7 @@ if nargin ==0
     saveName = saveName(end);
     saveName = filename(saveName+1 : saveName+13);
     
-% % % %     saveName = [saveDir,filesep, saveName];
+    % % % %     saveName = [saveDir,filesep, saveName];
     %%
 elseif nargin ==1
     filename=varargin{1};
@@ -35,6 +37,9 @@ slider.r_ms=1:4500; % ALERT
 if strcmp(slider.filename(end-2:end), 'mp4')
     slider.f=mmread(slider.filename, slider.val);
     ii=slider.f.frames(1).cdata(:,:,1);
+    if  slider.f.nrFramesTotal == 0
+        slider.f.nrFramesTotal = 4000;
+    end
 elseif strcmp(slider.filename(end-2:end), 'seq')
     
     [seq_info, fid] = read_seq_header(slider.filename);
@@ -55,21 +60,21 @@ end
 
 
 %slider.M = Whisker.read_whisker_measurements_v3([slider.filename(1:end-4) '.measurements']);
-if exist([slider.filename(1:end-4) '.measurements.mat'],'file')
-    [slider.r, obj.trackerFileFormat] = Whisker.load_whiskers_file([slider.filename(1:end-4) '.whiskers']);
-    
-    a=load([slider.filename(1:end-4) '.measurements.mat']);
-    slider.M=a.M;
-    disp('loaded .measurements.mat file')
-elseif exist([slider.filename(1:end-4) '.measurements'],'file')
-    [slider.r, obj.trackerFileFormat] = Whisker.load_whiskers_file([slider.filename(1:end-4) '.whiskers']);
-    slider.M = Whisker.read_whisker_measurements_v3([slider.filename(1:end-4) '.measurements']);
-    disp('loaded .measurements file')
-else
-    slider.M=[];
-end
+% if exist([slider.filename(1:end-4) '.measurements.mat'],'file')
+%     [slider.r, obj.trackerFileFormat] = Whisker.load_whiskers_file([slider.filename(1:end-4) '.whiskers']);
+%
+%     a=load([slider.filename(1:end-4) '.measurements.mat']);
+%     slider.M=a.M;
+%     disp('loaded .measurements.mat file')
+% elseif exist([slider.filename(1:end-4) '.measurements'],'file')
+%     [slider.r, obj.trackerFileFormat] = Whisker.load_whiskers_file([slider.filename(1:end-4) '.whiskers']);
+%     slider.M = Whisker.read_whisker_measurements_v3([slider.filename(1:end-4) '.measurements']);
+%     disp('loaded .measurements file')
+% else
+%     slider.M=[];
+% end
 
-
+slider.M=[];
 if  exist('DOM3_wrong_pulses.mat')
     a=load('DOM3_wrong_pulses.mat');
     slider.r_ms=a.r_ms/1000;
@@ -284,13 +289,16 @@ set(eth,'UserData',slider)
 
 %% bar tracker
     function bartracker(ii)
-        
+        JSF = []
+        h5 = []
         
         [x,y] = ginput(1);
         %close(h1)
-        cs=8;
+        cs=12;
         xpos=round(x)+1;
         ypos=round(y)+1;
+        
+        xySave = [xpos, ypos];
         if ypos >cs && ypos>cs
             
             cropped_image=ii( ypos-cs:ypos+cs, xpos-cs:xpos+cs);
@@ -298,21 +306,31 @@ set(eth,'UserData',slider)
             cropped_image=ii(1:cs, 1:cs);
         end
         h5=figure('position',[300 25 400 400]); imagesc(cropped_image); colormap('gray'); hold on;
-        rectangle ('position', [8 8 16 16 ], 'curvature', [1, 1], 'LineWidth', 2, 'EdgeColor', 'r');
-        plot(cs, cs, 'ro');
+        rectangle ('position', [1 1 cs*2 cs*2], 'curvature', [1, 1], 'LineWidth', 5, 'EdgeColor', [1 0 0 .3]);
+        plot(cs+1, cs+1, 'ro');
         
         bb='No';
         p=0;
         
         while p==0
-            bb=questdlg('accept bar?', 'Accept bar' );
-            close(h5);
+            
+            bb=questdlg('accept bar?', 'Accept bar', 'Yes', 'No', 'Joystick' , 'Joystick');
+            try
+                close(h5);
+            catch
+            end
+            try
+                close(JSF);
+            catch
+            end
             switch bb
                 case 'Yes'
+                    
                     %save the files
                     p=1;
                     
                 case 'No'
+                    
                     %cd(movie_path)
                     [b a] = uigetfile('*.mp4', 'select go trial');
                     slider.filename=[a b];
@@ -321,22 +339,48 @@ set(eth,'UserData',slider)
                     set(eth,'UserData',slider)
                     [x,y] = ginput(1);
                     %close(h1);
+                    xpos=round(x)+1;
+                    ypos=round(y)+1;
                     
-                    cs=8;
-                    xpos=round(x);
-                    ypos=round(y);
-                    if ypos >cs && ypos>cs
+                case 'Joystick'
+                    joySTK = [0 0];
+                    % Create pushbuttons for panning
+                    waitForUser = 1;
+                    
+                    %                     while waitForUser
+                    JSF = figure;
+                    uicontrol('Style','pushbutton','Position',[20 40 40 20],'String','Left','Callback',{@panleft});
+                    uicontrol('Style','pushbutton','Position',[100 40 40 20],'String','Right','Callback',{@panright});
+                    uicontrol('Style','pushbutton','Position',[60 60 40 20],'String','Up','Callback',{@panup});
+                    uicontrol('Style','pushbutton','Position',[60 20 40 20],'String','Down','Callback',{@pandown});
+                    uicontrol('Style','pushbutton','Position',[60 40 40 20],'String','Done','Callback',{@donezo});
+                    %                     end
+                    % Callback functions
+                    disp('waiting for user input')
+                    test1 = 1;
+                    while test1
+                        pause(.05);
                         
-                        cropped_image=ii( ypos-cs:ypos+cs, xpos-cs:xpos+cs);
-                    else
-                        cropped_image=ii(1:cs, 1:cs);
+                        %%
+                        test1 = joySTK(1) <10;
+                        try
+                            xpos=joySTK(1) + xpos;
+                            ypos=joySTK(2) + ypos;
+                            if ypos >cs && ypos>cs
+                                
+                                cropped_image=ii( ypos-cs:ypos+cs, xpos-cs:xpos+cs);
+                            else
+                                cropped_image=ii(1:cs, 1:cs);
+                            end
+                            hold off
+                            imagesc(cropped_image); colormap('gray'); hold on
+                            
+                            joySTK = [0 0];
+                        catch
+                        end
                     end
-                    
-                    h5=figure; imagesc(cropped_image); colormap('gray'); hold on
-                    rectangle ('position', [8 8 16 16], 'curvature', [1, 1], 'LineWidth', 2, 'EdgeColor', 'r');
-                    plot(cs, cs, 'ro');
-                    
-                    p=0;
+                    rectangle ('position', [1 1 cs*2 cs*2], 'curvature', [1, 1], 'LineWidth', 5, 'EdgeColor', [1 0 0 .3]);
+                    plot(cs+1, cs+1, 'ro');
             end
         end
         
@@ -360,10 +404,28 @@ set(eth,'UserData',slider)
         elseif strcmp(slider.filename(end-2:end), 'seq')
             movie_files=selectFilesFromList(slider.path, '*.seq');
         end
-
+        
         nextSet = 1;
-        save([saveName, '_part2']);
         close all
+        tic
+        save([saveName, '_part2']);
+        toc
+        
+    end
+    function panleft(obj,evt)
+        joySTK = [-1 0];
+    end
+    function panright(obj,evt)
+        joySTK = [1 0];
+    end
+    function panup(obj,evt)
+        joySTK = [0 -1];
+    end
+    function pandown(obj,evt)
+        joySTK = [0 1];
+    end
+    function donezo(obj, evt)
+        joySTK = 99999;
     end
     function names = selectFilesFromList(path, type)
         
@@ -386,7 +448,7 @@ set(eth,'UserData',slider)
         if nargin == 2
             filetype = type;
         end
-        
+        filetype(filetype=='*') = '';
         d = dir(fullfile(path, ['/*' filetype]));
         if length(d) == 0
             str = 'No Files Found';
@@ -407,10 +469,26 @@ set(eth,'UserData',slider)
         
         
     end
+tmp1 = 1;
+tmp2 = 1;
+tmp3 = 1;
+tmp4 = 1;
+tmp5 = 1;
 while nextSet == 0
     pause(1)
 end
-save([saveName, '_part1']);
+
+whosVar = struct2cell(whos);
+INDwhos = [];
+for k = 1:size(whosVar, 2)
+    if contains(whosVar(4, k),'matlab.ui.control.UIControl')
+        INDwhos(k) = 0;
+    else
+        INDwhos(k) = 1;
+    end
+end
+whosVar = whosVar(:,find(INDwhos))
+save([saveName, '_part1'], whosVar{1, :});
 end
 
 
