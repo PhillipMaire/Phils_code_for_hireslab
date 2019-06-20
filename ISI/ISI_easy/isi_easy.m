@@ -24,7 +24,17 @@ end
 for k =1:numInputs
     [FileName,PathName,FilterIndex] = uigetfile('*.*');
     cd(PathName)
-    if  contains(FileName,'result');
+    if FileName == 0
+        
+    elseif   contains(FileName,'.png');
+        isiM  = imread(FileName);
+        display(' ')
+        display(' ')
+        display(' ')
+        display(' ')
+        display('isiM for PNG image')
+        display(FileName)
+    elseif  contains(FileName,'result');
         isiM  = isi_showMeanMap(FileName);
         display(' ')
         display(' ')
@@ -51,7 +61,7 @@ for k =1:numInputs
             end
         end
         
-        if dirDetailsCell{4,index}>500000;
+        if dirDetailsCell{4,index}>50000000 && ~contains(FileName,'fromVid');
             isi_image(FileName(1:end-8));
         else
             
@@ -69,7 +79,18 @@ for k =1:numInputs
     
     if nargin >=numNormalInputs
         [FileName2,PathName2,FilterIndex2] = uigetfile('*.*');
-        if  contains( FileName2,'result');
+        
+        if FileName2 == 0
+            
+        elseif  contains(FileName2,'.png')
+            isiM  = imread(FileName2);
+            display(' ')
+            display(' ')
+            display(' ')
+            display(' ')
+            display('isiM for PNG image')
+            display(FileName)
+        elseif  contains( FileName2,'result');
             isiM  = isi_showMeanMap(FileName2);
             display(' ')
             display(' ')
@@ -78,7 +99,7 @@ for k =1:numInputs
             display('isiM for ISI image')
             display(FileName2)
         elseif contains(FileName2,'fromVid')
-            isiM = load(FileName);
+            isiM = load(FileName2);
             isiM = isiM.vidFrameGray;
             display(' ')
             display(' ')
@@ -96,10 +117,11 @@ for k =1:numInputs
                 end
             end
             
-            if dirDetailsCell{4,index}>500000;
+            if dirDetailsCell{4,index}>50000000 && ~contains(FileName,'fromVid');
                 isi_image(FileName2(1:end-8))
-            else
                 
+                
+            else
                 isiM2 = isi_showQCamRaw(FileName2);
                 display(' ')
                 display(' ')
@@ -110,6 +132,14 @@ for k =1:numInputs
             end
             
         end
-        isi_quickdraw (isiM,isiM2, FileName, FileName2)
+        try
+            isi_quickdraw (isiM,isiM2, FileName, FileName2)
+        catch
+            if exist('isiM')
+                isi_quickdraw (isiM,isiM, FileName, FileName2)
+            elseif exist('isiM2')
+                isi_quickdraw (isiM2,isiM2, FileName, FileName2)
+            end
+        end
     end
 end
