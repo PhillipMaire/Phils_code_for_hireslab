@@ -7,7 +7,7 @@ frameRate = 7;
 fileNameTMP = 'sig2';
 
 
-isi_video4(fileNameTMP, frameRate);
+isi_video(fileNameTMP, frameRate);
 %               cd('C:\Users\maire\Desktop\StimTrialMats')
 
 %% then choose the frame you want to draw over by opening the file in quicktime 
@@ -63,7 +63,7 @@ frameRate = 10;
 fileNameTMP = 'sig3real';
 
 
-[imageVar] = isi_video4TESTING(fileNameTMP,frameRate, numFramesPerTrial, numTrials,baselineFrames, numFramesInSignal);
+[imageVar] = isi_videoSetYourOwnSettings(fileNameTMP,frameRate, numFramesPerTrial, numTrials,baselineFrames, numFramesInSignal);
 %% ########## isi template for making drill location 
 numFramesPerTrial = 10; %after temporal averaging
 numTrials = 20; % 20 trials
@@ -75,7 +75,7 @@ frameRate = 10;
 fileNameTMP = 'sig2aFAKE';
 
 
-[imageVar] = isi_video4TESTING(fileNameTMP,frameRate, numFramesPerTrial, numTrials,baselineFrames, numFramesInSignal);
+[imageVar] = isi_videoSetYourOwnSettings(fileNameTMP,frameRate, numFramesPerTrial, numTrials,baselineFrames, numFramesInSignal);
 %% ########## isi template for making drill location 
 numFramesPerTrial = 20; %after temporal averaging
 numTrials = 20; % 20 trials
@@ -87,6 +87,6 @@ frameRate = 10;
 fileNameTMP = 'sig33';
 makeNewVidForEachTtrial =0
 
-[imageVar] = isi_video4TESTING(fileNameTMP,frameRate, numFramesPerTrial, numTrials,baselineFrames, numFramesInSignal);
+[imageVar] = isi_videoSetYourOwnSettings(fileNameTMP,frameRate, numFramesPerTrial, numTrials,baselineFrames, numFramesInSignal);
 
 

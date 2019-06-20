@@ -1,4 +1,4 @@
-function [imageVar] = isi_video4(filename,frameRate)
+function [imageVar] = isi_video(filename,frameRate)
 % modified by Phillip Maire to make videos 08/20/2018
 % any variable will activate ffmpeg to make contrast adjusted video ;)
 % Modified from isi_meanMapCache by Jinho Kim 01/09/2016
@@ -110,6 +110,8 @@ for movieIter = 1:totalFrames
             if k==1
                 stimMean = stim;
                 baseMean = base;
+                
+%                 get a regular blurred picture from the ISI video
             else
                 stimMean = stimMean + stim;
                 baseMean = baseMean + base;
