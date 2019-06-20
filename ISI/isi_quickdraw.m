@@ -2,6 +2,12 @@
 function  isi_quickdraw (isiM, isiM2, varargin)
 numNormalInputs = 2; 
 RedImage = figure(10)
+try 
+    isiM = rgb2gray(isiM);
+end
+try 
+    isiM2 = rgb2gray(isiM2);
+end
  imagesc(isiM)
 colormap('gray')
 imcontrast
