@@ -142,9 +142,10 @@ hold on; plot(final_pos(:,1),final_pos(:,2), 'ro');
 %         %save the files
 %
 disp('Saving all bar files (automatically overwrites)')
-for i=1:length(movie_files)
+theseFiles = find(all(final_pos~=0, 2))
+for k=1:length(theseFiles)
     %i=3
-    i
+    i = theseFiles(k)
     bm=[];
     bm(:, 2:3)=repmat(final_pos(i, :),  frame_num(i), 1);
     bm(:, 1)=[1: frame_num(i)]';
