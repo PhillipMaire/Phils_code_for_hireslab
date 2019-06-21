@@ -20,6 +20,7 @@ hh=waitbar(0,'correlating', 'Position', 1000* [0.1    0.1    0.2700    0.0563]);
 sp=figure('position', [200 200 20*cs 20*cs]);
 noFileIndicator = 1;
 % save(saveName);
+final_pos = [];
 for i=1:length(movie_files)
     
     if ~exist(movie_files{i}, 'file')
@@ -72,6 +73,7 @@ for i=1:length(movie_files)
         final_pos(i, 2)=d-cs;
         
         cor(d, b)
+        
         if cor(d, b)<0.88
             final_pos(i, 1)=100-cs;
             final_pos(i, 2)=100-cs;
@@ -104,7 +106,7 @@ close(sp)
 
 h6=figure('Position', [5 200 2*slider.f.width 2*slider.f.height], 'Color', 'w', 'Name', [slider.filename]);
 imagesc(ii); colormap ('gray');
-
+if ~isempty(final_pos)
 hold on; plot(final_pos(:,1),final_pos(:,2), 'ro');
 
 
@@ -157,7 +159,9 @@ for k=1:length(theseFiles)
     
 end
 disp('done')
-
+else
+   fprintf('\nall bars where already tracked!\n') 
+end
 
 %     case 'No'
 %         disp('done')
