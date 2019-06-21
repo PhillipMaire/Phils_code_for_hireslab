@@ -461,11 +461,12 @@ set(eth,'UserData',slider)
             disp('No Files with that Extension Selected. Please choose a Path with Image files');
             return
         end
-        
-        [s,v] = listdlg('PromptString','Select a file:', 'OKString', 'OK',...
-            'SelectionMode','multiple',...
-            'ListString', str, 'Name', 'Select a File');
-        names = str(s);
+% % % % %         
+% % % % %         [s,v] = listdlg('PromptString','Select a file:', 'OKString', 'OK',...
+% % % % %             'SelectionMode','multiple',...
+% % % % %             'ListString', str, 'Name', 'Select a File');
+% % % % %         names = str(s);
+        names = str(:);
         
         
     end
