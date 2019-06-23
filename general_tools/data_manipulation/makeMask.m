@@ -1,7 +1,7 @@
 %{
-spikes = squeeze(cellTMP.R_ntk) .* 1000;
-cellTMP = U{cellStep}
 
+cellTMP = U{1}
+spikes = squeeze(cellTMP.R_ntk) .* 1000;
 % define the points here we use all touches
 touchFirstAll = find(squeeze(cellTMP.S_ctk(14,:,:))==1);
 touchLateALL = find(squeeze(cellTMP.S_ctk(11,:,:))==1);
