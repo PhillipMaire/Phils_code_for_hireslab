@@ -121,6 +121,7 @@ xlimSET = [-10 300];
 numBinsSET = 40;
 modifyValue = xlimSET(1);
 for cellStep = 1:length(U)
+    disp(cellStep)
     subplotMakerNumber = 2; subplotMaker
     spikesTMP = squeeze(U{cellStep}.R_ntk);
     poleONSETS = U{cellStep}.meta.poleOnset;
@@ -160,7 +161,7 @@ for cellStep = 1:length(U)
     grid on
    set(gcf, 'Units', 'Normalized', 'OuterPosition', [1, 0, 1, 1]);
 end
-% keyboard
+keyboard
 set(gcf, 'Units', 'Normalized', 'OuterPosition', [1, 0, 1, 1]);
 filename =  [num2str(cellStep), '_FirstSpikeAfterPoleUp' ];
 saveas(gcf,filename,'png')

@@ -1,6 +1,7 @@
 %%
 
 hold on 
+cellStep = 1
 phaseVar = squeeze(U{cellStep}.S_ctk(5, :, :));
 ampVar =squeeze(U{cellStep}.S_ctk(3, :, :));
 thetaVar =      squeeze(U{cellStep}.S_ctk(1, :, :));
@@ -21,7 +22,7 @@ xlimVar = poleOnsetsTMP(trialNumber)+400;
 xlim([poleOnsetsTMP(trialNumber)-200, xlimVar]);
 xticks(poleOnsetsTMP(trialNumber)-200:20:xlimVar);
 grid;
-keyboard
+waitForEnterPress
 hold off
 end
 %%

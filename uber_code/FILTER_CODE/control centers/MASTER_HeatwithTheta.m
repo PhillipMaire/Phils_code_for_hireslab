@@ -1,6 +1,6 @@
 %% switch u arrays
 
-U2 = U;
+U2 = Ufilters;
 
 
 

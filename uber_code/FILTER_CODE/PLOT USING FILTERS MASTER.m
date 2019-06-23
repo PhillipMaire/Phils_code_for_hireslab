@@ -230,7 +230,7 @@ plotsFromFilters_plusVariableFilterTESTincludeALL
 for minimizeSection = 1
     clearvars -except U U2 Uall
     %% save section
-    saveON = true;
+    saveON = false;
     saveDir = 'C:\Users\maire\Documents\PLOTS\S2\Pole Position\GOvsNOGO';%dont add end slash
     mkdir(saveDir);
     saveStringAddOn = 'poleUp whisk beforeTouch';
