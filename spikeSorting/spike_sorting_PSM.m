@@ -99,7 +99,7 @@ for addNum= startNum: length(TrialIndCount)-1
     spikeCountPerTrialChunk = spikeCountPerTrial(TrialIndCount(addNum):TrialIndCount(1+addNum)-1);
     if sum(spikeCountPerTrialChunk)<1 %dont use no spike trials
         delete(spikeHandle)
-        FigNameString = ['Plot ',num2str(addNum),'/', num2str(length(TrialIndCount)-1),'     Trials ', num2str(TrialIndCount(addNum)), '-',num2str(TrialIndCount(1+addNum)-1),'     Spikes ',num2str(test3), '-' num2str(test1)];
+        FigNameString = ['Plot ',num2str(addNum),'/', num2str(length(TrialIndCount)-1),'     Trials ', num2str(TrialIndCount(addNum)), '-',num2str(TrialIndCount(1+addNum)-1),'     Spikes ',num2str(test33333333333333333), '-' num2str(test1111111111111)];
         title(FigNameString)
         lineMat(1:timePoints+1) = -1;
         line(0:timePoints, lineMat);
@@ -107,17 +107,17 @@ for addNum= startNum: length(TrialIndCount)-1
         pause()
     else
         
-        test1 = sum(allSpikes);
-        test2 = sum(spikeCountPerTrialChunk);
-        test3 = test1 - test2 +1;
+        test1111111111111 = sum(allSpikes);
+        test222222222222222222 = sum(spikeCountPerTrialChunk);
+        test33333333333333333 = test1111111111111 - test222222222222222222 +1;
         
         % addNum =5; % start with 1. make it 1 less than the numbers in TrialIndCount
         %%%%%%%%change addNum number to go through each chunk of the cell spike data
         
         
         hold off
-        spikeHandle = plot(swAdjusted(:,test3:test1));
-        FigNameString = ['Plot ',num2str(addNum),'/', num2str(length(TrialIndCount)-1),'     Trials ', num2str(TrialIndCount(addNum)), '-',num2str(TrialIndCount(1+addNum)-1),'     Spikes ',num2str(test3), '-' num2str(test1)];
+        spikeHandle = plot(swAdjusted(:,test33333333333333333:test1111111111111));
+        FigNameString = ['Plot ',num2str(addNum),'/', num2str(length(TrialIndCount)-1),'     Trials ', num2str(TrialIndCount(addNum)), '-',num2str(TrialIndCount(1+addNum)-1),'     Spikes ',num2str(test33333333333333333), '-' num2str(test1111111111111)];
         title(FigNameString)
         hold on
         ylim(plotLimY)
@@ -387,8 +387,8 @@ end
                     case 0 %is a click
                         typeOutput{k, 1} = figName.SelectionType;
                         %is a left of right click (not middle)
-                        test1 = strcmp(typeOutput{k}, 'normal') || strcmp(typeOutput{k}, 'alt');
-                        switch test1
+                        test1111111111111 = strcmp(typeOutput{k}, 'normal') || strcmp(typeOutput{k}, 'alt');
+                        switch test1111111111111
                             case true
                                 xy = get(gca,'CurrentPoint');
                                 XclickCoords(k, 1) = xy(1,1);
