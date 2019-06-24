@@ -8,7 +8,7 @@ function output = processBehavior(S,protocalName);
 % incorrect
 % 6-8 Dprime, useTrials, session #
 %% single port continious (regular)
-if strcmp(protocalName, 'pole_contdiscrim_obj_')
+if strcmp(protocalName, 'pole_contdiscrim_obj_') || strcmp(protocalName, 'pole_contdiscrim_delay_obj_')
     numVariables = 50;
     load([S.baseFolder filesep S.mouseName{1} filesep S.behavFile{1}])
 % % % % % %     trialResults = zeros(size(saved.SidesSection_previous_sides,2)-1,numVariables);
