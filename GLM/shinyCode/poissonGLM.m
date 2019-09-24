@@ -52,7 +52,7 @@ numTimesToRunModel = 10;
 % theseCells = 1:length(U);
 load('Y:\tmpForTransfer\PHILS_GLM_CODE\cells2run.mat')
 theseCells = cells2run;
-theseCells = theseCells(1:floor(length(theseCells)./1.5))
+theseCells = theseCells(1:ceil(length(theseCells)./1.5))
 
 
 saveForTmp1Models = 'C:\Users\maire\Dropbox\HIRES_LAB\PHIL\Data\GLMs\tmpSavesForGLMmodels';
@@ -126,7 +126,7 @@ for cellStepTMP = 1:length(theseCells)
             DMsettings.numInEachLabel = DM.numInEachLabel;
             save(['tmp_cell_', num2str(cellStep), '_DMsettings'], 'DMsettings')
             
-            parfor iterateModel = ModelItersToRun(:)'
+            for iterateModel = ModelItersToRun(:)'
                 
                 [DM2] = sampleDMandY(perc2model, limitModelTrialNumsTo,msRangeToModel, C, DM);
                 
@@ -145,7 +145,7 @@ for cellStepTMP = 1:length(theseCells)
                 parForSaveGLM(['tmp_cell_', num2str(cellStep), '_modRunNum_', num2str(iterateModel)], DM2)
                 
                 
-%                 parallelHackForGLMnet(minNumWorkers, userDir,numModelsRunTotal);
+                parallelHackForGLMnet(minNumWorkers, userDir,numModelsRunTotal);
                 
             end
             
