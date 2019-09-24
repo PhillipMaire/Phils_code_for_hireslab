@@ -15,8 +15,9 @@ if length(dir([userDir, filesep, '*numModelsRunAtBreakPoint_numWorkersAtBreakPoi
         load([userDir, filesep, 'numModelsRunAtBreakPoint_numWorkersAtBreakPoint.mat'])
         
         % check to see if the remining cores finish their jobs
-        while numModelsRunTotal < numModelsRunAtBreakPoint+numWorkersAtBreakPoint
-            numModelsRunTotal = length(dir('*_modRunNum_*'));
+        while numModelsRunTotal < numModelsRunAtBreakPoint+numWorkersAtBreakPoint || 
+             p = gcp;
+            numModelsRunTotal = length(dir('*_modRunNum_*'))+(numWorkersAtBreakPoint-p.NumWorkers);
         end
         
         % when they are done running kill the program because another program is on a while loop
