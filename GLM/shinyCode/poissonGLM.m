@@ -1,5 +1,9 @@
 %{
 
+winopen(saveForTmp1Models)
+
+
+
 dateString = datestr(now,'yymmdd_HHMM');
 
 
@@ -83,10 +87,12 @@ for k = 1:size(modsRanAlready, 1)
     tmp2 = strfind(S, '.');
     dim2 = str2num(S(tmp1(4)+1:tmp2(1)-1));
     leftToRun(dim1, dim2) = 0;
+    
+    
 end
 
 [dim1, dim2] = find(leftToRun);
-theseCells = theseCells(unique(dim1));
+theseCells = intersect(theseCells, unique(dim1));
 
 if sum(leftToRun(:)) == 0;
     triggerParForEnd = 0 ;
@@ -135,11 +141,11 @@ for cellStepTMP = 1:length(theseCells)
                 DM2.modLoc = find(DM2.model.lambda ==DM2.model.lambda_1se);
                 % to save just the important parts
                 keepFields = {'model' 'tomodel' 'toTest' 'modLoc' 'perc2model'};%remove allbut these fields
-%                 DM = rmfield(DM,setdiff(fieldnames(DM), keepFields));
+                DM2 = rmfield(DM2,setdiff(fieldnames(DM2), keepFields));
                 parForSaveGLM(['tmp_cell_', num2str(cellStep), '_modRunNum_', num2str(iterateModel)], DM2)
                 
                 
-                parallelHackForGLMnet(minNumWorkers, userDir,numModelsRunTotal);
+%                 parallelHackForGLMnet(minNumWorkers, userDir,numModelsRunTotal);
                 
             end
             
