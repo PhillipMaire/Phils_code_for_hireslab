@@ -1,5 +1,8 @@
 function parallelHackForGLMnet(minNumWorkers, userDir,numModelsRunTotal)
 disp('boopboop')
+pause(2)
+pBullet = Pushbullet('o.LLzZkkdcd6WN8MG5HyQjFDsCCSmRBAzw')
+pBullet.pushNote([],'parallelHackForGLMnet',['parallelHackForGLMnet'])
 % only allow one for loop to get through and save the variable
 if length(dir([userDir, filesep, '*numModelsRunAtBreakPoint_numWorkersAtBreakPoint*'])) == 0
     p = gcp;
@@ -15,7 +18,7 @@ if length(dir([userDir, filesep, '*numModelsRunAtBreakPoint_numWorkersAtBreakPoi
         load([userDir, filesep, 'numModelsRunAtBreakPoint_numWorkersAtBreakPoint.mat'])
         
         % check to see if the remining cores finish their jobs
-        while numModelsRunTotal < numModelsRunAtBreakPoint+numWorkersAtBreakPoint || 
+        while numModelsRunTotal < numModelsRunAtBreakPoint+numWorkersAtBreakPoint
              p = gcp;
             numModelsRunTotal = length(dir('*_modRunNum_*'))+(numWorkersAtBreakPoint-p.NumWorkers);
         end
