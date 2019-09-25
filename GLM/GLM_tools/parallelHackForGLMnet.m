@@ -1,13 +1,13 @@
 function parallelHackForGLMnet(minNumWorkers, userDir,numModelsRunTotal)
-disp('boopboop')
-pause(2)
-pBullet = Pushbullet('o.LLzZkkdcd6WN8MG5HyQjFDsCCSmRBAzw')
-pBullet.pushNote([],'parallelHackForGLMnet',['parallelHackForGLMnet'])
+% disp('boopboop')
+% pause(2)
+% pBullet = Pushbullet('o.LLzZkkdcd6WN8MG5HyQjFDsCCSmRBAzw')
+% pBullet.pushNote([],'parallelHackForGLMnet',['parallelHackForGLMnet'])
 % only allow one for loop to get through and save the variable
 if length(dir([userDir, filesep, '*numModelsRunAtBreakPoint_numWorkersAtBreakPoint*'])) == 0
-    p = gcp;
-    disp(p.NumWorkers);
-    if p.NumWorkers<=minNumWorkers
+    p = gcp('nocreate');
+    
+    if p.NumWorkers<=minNumWorkers 
         numModelsRunAtBreakPoint = length(dir('*_modRunNum_*'));
         numWorkersAtBreakPoint = p.NumWorkers;
         

@@ -13,7 +13,7 @@ dateString = datestr(now,'yymmdd_HHMM');
 
 minNumWorkers = 10;
 
-numCores = 16;
+numCores = 36./2;
 leftToRun = 1;
 
 counter1 = 0;
@@ -71,8 +71,8 @@ numTimesToRunModel = 10;
 % theseCells = 1:length(U);
 load('Y:\tmpForTransfer\PHILS_GLM_CODE\cells2run.mat')
 theseCells = cells2run;
-theseCells = theseCells(ceil(length(theseCells)./1.5):length(theseCells))
-theseCells = 1
+theseCells = theseCells(1:floor(length(theseCells)./1.5))
+% theseCells = 1
 
 saveForTmpModels = 'C:\Users\shires\Documents\PHILS_GLM_SAVES\tmpSaveForModels';
 saveForTmpModels = [saveForTmpModels, '_', dateString];
@@ -146,6 +146,7 @@ for cellStepTMP = 1:length(theseCells)
             DMsettings.X = DM.X3;
             DMsettings.label = DM.label;
             DMsettings.numInEachLabel = DM.numInEachLabel;
+            DM = [];
             save(['tmp_cell_', num2str(cellStep), '_DMsettings'], 'DMsettings')
         end
         parfor iterateModelTMP = 1:length(ModelItersToRun)
@@ -157,19 +158,24 @@ for cellStepTMP = 1:length(theseCells)
             glmNetOptions.alpha= .95;
             % glmnetSet
             
+            keepFields = {'tomodel' 'toTest' 'modLoc' 'perc2model' 'X2model' 'Y2model'};%remove allbut these fields
+            DM2 = rmfield(DM2,setdiff(fieldnames(DM2), keepFields));
+            
             
             DM2.model = cvglmnet(DM2.X2model, DM2.Y2model, 'poisson', glmNetOptions);
+            %             DM2.model = 1;
             
             DM2.modLoc = find(DM2.model.lambda ==DM2.model.lambda_1se);
+            %             DM2.modLoc = 1
             % to save just the important parts
             keepFields = {'model' 'tomodel' 'toTest' 'modLoc' 'perc2model'};%remove allbut these fields
             DM2 = rmfield(DM2,setdiff(fieldnames(DM2), keepFields));
             parForSaveGLM(['tmp_cell_', num2str(cellStep), '_modRunNum_', num2str(iterateModel)], DM2)
             
             
-            parallelHackForGLMnet(minNumWorkers, userDir,numModelsRunTotal);
             
         end
+        parallelHackForGLMnet(minNumWorkers, userDir,numModelsRunTotal);
         
         
         timeItTook = toc
