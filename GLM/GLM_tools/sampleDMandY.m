@@ -1,4 +1,11 @@
 function [DM] = sampleDMandY(perc2model, limitModelTrialNumsTo, msRangeToModel , C, DM)
+try 
+   DM.Y3 = DM.Y;
+   DM.X3 = DM.X;
+    
+catch
+    
+end
 if isempty(limitModelTrialNumsTo)
     limitModelTrialNumsTo = inf;
 end
