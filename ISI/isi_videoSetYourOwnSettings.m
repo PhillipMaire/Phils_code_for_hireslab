@@ -264,6 +264,7 @@ open(v);
 % movieArray2 = movieArray;
 for k = 1:totalFrames
     frame = movieArray2(:,:,k);
+%     frame = abs(frame-1);
     %     imadjust(frame,contrastAdjLims,[]);
     writeVideo(v,frame);
 end

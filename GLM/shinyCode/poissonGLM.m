@@ -126,7 +126,7 @@ for cellStepTMP = 1:length(theseCells)
             DMsettings.numInEachLabel = DM.numInEachLabel;
             save(['tmp_cell_', num2str(cellStep), '_DMsettings'], 'DMsettings')
             
-            for iterateModel = ModelItersToRun(:)'
+            parfor iterateModel = ModelItersToRun(:)'
                 
                 [DM2] = sampleDMandY(perc2model, limitModelTrialNumsTo,msRangeToModel, C, DM);
                 

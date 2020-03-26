@@ -21,7 +21,11 @@ function [imageVar] = isi_video(filename,frameRate)
 contrastAdjLims = [0.25 0.80];
 numFramesPerTrial = 20; %after temporal averaging
 numTrials = 20; % 20 trials
-baselineFrames = 3; % whisker deflection starts after 5 sec %%###
+
+basePeriod = 1:3; % baseline frames
+
+
+baselineFrames = length(basePeriod); % whisker deflection starts after 5 sec %%###
 
 
 smoothingStepSize = 1; % whisker stimulation total 5 sec (at 5 Hz)%%###
@@ -31,12 +35,12 @@ smoothingFramesPerFrame = 3;
 % %
 %%%% setting for normal ISI settings
 % contrastAdjLims = [0.25 0.80] these seem to be optimal - PSM
-% contrastAdjLims = [0.25 0.75] this has higher SNR but you loose some of the subtle changes 
+% contrastAdjLims = [0.25 0.75] this has higher SNR but you loose some of the subtle changes
 % un like the 25 80 which has high SNR with those.
 % % % % contrastAdjLims = [0.25 0.80];
 % % % % numFramesPerTrial = 20; %after temporal averaging
 % % % % numTrials = 20; % 20 trials
-% % % % 
+% % % %
 % % % % baselineFrames = 5; % whisker deflection starts after 5 sec %%###
 % % % % smoothingStepSize = 1; % whisker stimulation total 5 sec (at 5 Hz)%%###
 % % % % smoothingFramesPerFrame = 3;% tested this and it seems that 3 is the best setting for strongest signal
@@ -61,7 +65,6 @@ while(1)
 end
 outputfilename = [outputfileheader_temp '.mat'];
 
-basePeriod = 1 : baselineFrames;
 
 % First, strip file name of any either extension:
 x = strfind(filename, '.qcamraw');
@@ -111,7 +114,7 @@ for movieIter = 1:totalFrames
                 stimMean = stim;
                 baseMean = base;
                 
-%                 get a regular blurred picture from the ISI video
+                %                 get a regular blurred picture from the ISI video
             else
                 stimMean = stimMean + stim;
                 baseMean = baseMean + base;
@@ -165,6 +168,8 @@ open(v);
 % movieArray2 = movieArray;
 for k = 1:totalFrames
     frame = movieArray2(:,:,k);
+%     frame = abs(frame-1);
+    
     %     imadjust(frame,contrastAdjLims,[]);
     writeVideo(v,frame);
 end

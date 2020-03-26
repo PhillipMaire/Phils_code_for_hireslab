@@ -1,7 +1,7 @@
 %%
 function [x]=cellNums2MatWithNansOrZeros(cellArrayOfNums, varargin)
 
-n = max(cellfun(@length,cellArrayOfNums));
+
 
 
 n = max(cellfun(@length,cellArrayOfNums));

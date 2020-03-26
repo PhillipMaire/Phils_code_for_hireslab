@@ -1,6 +1,6 @@
 %%
 function [newU] = msAndRoundUarray(newU, type)
-%% should be either 1000 or 1/1000
+%%
 %%
 
 switch type
@@ -9,7 +9,8 @@ switch type
         multiplyBy = 1000;
         for cellStep2 = 1:length(newU)
             if ~(newU{cellStep2}.meta.poleOnset(1) < 10)
-                error('already in ms')
+                warning('already in ms')
+                return
             end
             newU{cellStep2}.meta.poleOnset = round(newU{cellStep2}.meta.poleOnset .* multiplyBy);
             newU{cellStep2}.meta.poleOffset = round(newU{cellStep2}.meta.poleOffset .* multiplyBy);
@@ -42,7 +43,8 @@ switch type
         multiplyBy = 1/1000;
         for cellStep2 = 1:length(newU)
             if (newU{cellStep2}.meta.poleOnset(1) < 10)
-                error('already in sec');
+                warning('already in sec');
+                return
             end
             newU{cellStep2}.meta.poleOnset = (newU{cellStep2}.meta.poleOnset .* multiplyBy);
             newU{cellStep2}.meta.poleOffset = (newU{cellStep2}.meta.poleOffset .* multiplyBy);

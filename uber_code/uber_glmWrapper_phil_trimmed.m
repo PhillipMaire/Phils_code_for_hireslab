@@ -5,7 +5,8 @@
 %
 %
 %
-% %%
+% %%stamp
+
 % clear U
 
 % %%%%set cvariable here to rename the U to a specific name that way we can
@@ -14,9 +15,9 @@
 %%
 
 % for k = 1: length(allCONTACTS)
-%     
+%
 %     newCell{k} = allCONTACTS(k).CellNumber;
-%     
+%
 % end
 % cellNumsFromWrapper = newCell;
 
@@ -24,11 +25,13 @@
 %%
 clear U
 close all hidden
-cellNumsFromWrapper = {'1' '2' '5' '6' '7' '8' '9' '10' '11' '12' '14' '15' '16A' '16B' '17' '18' ...
-    '21' '22' '23' '24' '25' '26' '27' '28' '29' '30' '33A' '33B' '35' '37' '39' '40' '41' '42'  ...
-    '43' '44' '45' '46'  '47' '48' '49' '50'  '51' '51B' '52'}
+% cellNumsFromWrapper = {'1' '2' '5' '6' '7' '8' '9' '10' '11' '12' '14' '15' '16A' '16B' '17' '18' ...
+%     '21' '22' '23' '24' '25' '26' '27' '28' '29' '30' '33A' '33B' '35' '37' '39' '40' '41' '42'  ...
+%     '43' '44' '45' '46'  '47' '48' '49' '50'  '51' '51B' '52'}
 
-cellNumsFromWrapper = {'1'}
+% cellNumsFromWrapper = {'2001' '2003' '2003' '2004' '2006' '' '' '' '' '' '' '' '' '' '' '' '' '' '' '' '' '' '' '' '' }
+
+
 
 % cellNumsFromWrapper = {'1' '2' '5' '6' '7' '8' '9' '10' '11' '12' '14' '15' '16A' '17' '18' ...
 %     '21' '22' '23' '24' '25' '26' '27' '28' '29' '33A' '33B' '35' '37' '39' '40' '41' '42'  ...
@@ -44,11 +47,43 @@ cellNumsFromWrapper = {'1'}
 % % cellNumsFromWrapper = {'26' '27' '28' '29' '30' '33A' '35' '37' '40' '41' '42'  ...
 % %     '43' '45' '46'  '47' '48' '49' '50'  '51' '52'}%based on the auto curator contacts done now
 % cellNumsFromWrapper = {'14' '21' '41'}
+
+
+characterizationDir = 'C:\Users\maire\Dropbox\HIRES_LAB\PHIL\Data\Characterization\';
+folderDir = 'S1ForJon2';
+% %% based on the trial arrays
+% cd([characterizationDir, filesep,folderDir, filesep  'TArrays'])
+% tmp1 = struct2cell(dir('trial_array_*'));
+% cellNumsFromWrapper = {}
+% for k = 1:size(tmp1, 2)
+%     tmp2 = tmp1{1, k};
+%     ind1 = strfind(tmp2 , 'trial_array_') + length('trial_array_');
+%     ind2 = strfind(tmp2, '.mat')- 1;
+%
+%     cellNumsFromWrapper{end+1} = tmp2(ind1:ind2);
+% end
+% trialCutoffs = repmat([1 1100],numel(cellNumsFromWrapper),1);
+%% based on the contacts
+cd([characterizationDir, filesep,folderDir, filesep  'Contacts'])
+tmp1 = struct2cell(dir('ConTA_*'));
+cellNumsFromWrapper = {};
+for k = 1:size(tmp1, 2)
+    tmp2 = tmp1{1, k};
+    ind1 = strfind(tmp2 , 'ConTA_') + length('ConTA_');
+    ind2 = strfind(tmp2, '.mat')- 1;
+    
+    cellNumsFromWrapper{end+1} = tmp2(ind1:ind2);
+end
 trialCutoffs = repmat([1 1100],numel(cellNumsFromWrapper),1);
 
 
-characterizationDir = 'Z:\Users\Phil\Data\Characterization\';
-folderDir = 'S2BadContacts2';
+
+
+
+
+
+
+
 
 StimTrialMatsLocation = 'C:\Users\maire\Desktop\StimTrialMats';
 %LEAVE OFF SLASH AT END
@@ -88,10 +123,10 @@ for cellStep = 1:length(cellNumsFromWrapper)
         cellNumsFromWrapper characterizationDir folderDir StimTrialMatsLocation trialCutoffs saveName ...
         saveNameTryThisFirst dateString allCellString finalDir U
     waitbar(0,progressWin2, ['loading cell ', num2str(cellNumsFromWrapper{cellStep})])
-    cd([characterizationDir folderDir '\TArrays'])
+    cd([characterizationDir filesep folderDir '\TArrays'])
     load(['trial_array_' num2str(cellNumsFromWrapper{cellStep}) '.mat'])
-        cd([characterizationDir folderDir '\Contacts'])
-% % %     cd('Z:\Users\Phil\Data\Characterization\AUTOCURATED_CONTA\Most_Updated')
+    cd([characterizationDir folderDir '\Contacts'])
+    % % %     cd('Z:\Users\Phil\Data\Characterization\AUTOCURATED_CONTA\Most_Updated')
     load(['ConTA_' num2str(cellNumsFromWrapper{cellStep}) '.mat'])
     clear d %d is saved variable for directory need to remove it
     d.varNames = {'thetaAtBase', 'velocity', 'amplitude', 'setpoint', 'phase', ...
@@ -109,8 +144,11 @@ for cellStep = 1:length(cellNumsFromWrapper)
         load([StimTrialMatsLocation,filesep, stimTrialvar, '.mat']);
     else
         disp('looking for stim trials');
-        cd(['Z:\Users\Phil\Data\EPHUS\', T.trials{1, 1}.mouseName, ...
+        %         cd(['C:\Users\maire\Dropbox\HIRES_LAB\PHIL\Data\EPHUS\', T.trials{1, 1}.mouseName, ...
+        %             filesep, T.trials{1, 1}.cellNum, filesep])
+        cd(['C:\Users\maire\Dropbox\HIRES_LAB\PHIL\Data\EPHUS\', ...
             filesep, T.trials{1, 1}.cellNum, filesep])
+        
         allXSG =  struct2cell(dir ('*.xsg'));
         
         progressWin = waitbar(0,'loading XSG files... will save so only have to do this once');
@@ -268,6 +306,17 @@ for cellStep = 1:length(cellNumsFromWrapper)
     
     useTrials = useTrials';
     traj = 1;
+    
+    
+    timeStamps = zeros(1,length(useTrials));
+    timeStampsContacts = zeros(1,length(useTrials));
+    for i = 1:length(useTrials)
+        timeStamps(i) = length(round(T.trials{useTrials(i)}.whiskerTrial.time{1}*1000)+1);
+        if ~isempty(contacts{useTrials(i)})
+        timeStampsContacts(i) = length(contacts{useTrials(i)}.M0combo{1});
+        end
+    end
+    useTrials = useTrials(timeStamps == timeStampsContacts);
     
     waitbar(0, progressWin2, ['compiling cell ', num2str(cellNumsFromWrapper{cellStep})]);
     for i = 1:length(useTrials);

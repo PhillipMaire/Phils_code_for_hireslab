@@ -813,12 +813,17 @@ end
         if ~(searchInAllOfTheseDirs{kkkk}(end) == '\' || searchInAllOfTheseDirs{kkkk}(end) == '/')
             searchInAllOfTheseDirs{kkkk}= [searchInAllOfTheseDirs{kkkk}, filesep];
         end
+        if ismac
+        dAll = regexp(genpath(searchInAllOfTheseDirs{kkkk}),['[^:]*'],'match');
+        else
         dAll = regexp(genpath(searchInAllOfTheseDirs{kkkk}),['[^;]*'],'match');
+        end
         
         seqANDmp4numbers = [];
         % remove all the directories with keywords chocen above
         remDirsInds = [];
         for removeString = 1:length(keywordRemoveDir)
+		warning('you removed directories with key words so if it errors out make sure your shit doesnt have those key words dawg!!!!!!!');
         remDirsInds(:,removeString) = cellfun(@isempty,(strfind(lower(dAll), lower(keywordRemoveDir{removeString}))));
         end
           keepDirs = find(sum(remDirsInds,2)==length(keywordRemoveDir)); % get all the dirs with NONE of the key words 
@@ -893,7 +898,9 @@ end
         %             error('you set convert video to false and there are no mp4s in the directory or any subdirectories')
         %         end
         % find the end dirs
-        
+        if isempty(startDirListOutput)
+            error('check to make sure the folder you selected doesnt have the key words to not track. otherwise make sure there are files to track or convert')
+        end
         seqINDS = find(~cellfun(@isempty,startDirListOutput(:,1)));
         mp4INDS = find(~cellfun(@isempty,startDirListOutput(:,2)));
 %         whiskersINDS = find(~cellfun(@isempty,startDirListOutput(:,3)));

@@ -4,8 +4,9 @@ smoothFactor = 1;
 
 baslinePeriod = -250:-50;% aligned variable (whisking onset ot pole up)
 
-baslinePeriod = baslinePeriod+preTIME+1;
+
 preTIME = 250;
+baslinePeriod = baslinePeriod+preTIME+1;
 postTIME = 200;
 xlimSET = [-75 75];
 ylimSET = [-10 10];

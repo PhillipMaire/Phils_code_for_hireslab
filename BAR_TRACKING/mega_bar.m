@@ -8,7 +8,7 @@ dateStringVar = datestr(now, 'yyyymmddTHHMMSS');
 
 dAll = {};
 materDirSet = {...
-    'X:\Video\PHILLIP\AH0991\190321\Camera_1\Camera_1'...
+    'X:\Video\PHILLIP\AH0927\190324\Camera_1'...
     ''...
     ''...
     ''...
@@ -92,7 +92,7 @@ end
 tic
 removingUnder4000FrameVidsAndOtherFiles2FUNC(materDirSet)
 toc
-%%
+%
 
 % suggest to run this and below at the saem time that way you can jsut walk away;
 %
@@ -122,7 +122,7 @@ for k = 1:numel(dAll)
     
     if ~isempty(filelist_mp4)
         
-        %             barTracker_SAH_mega_part2(saveNames{k}, d)
+        %             barTracker_SAH_mega_part2(saveNames{k}, d, skipFilesThatExist)
         barTracker_SAH_mega_part2('', d, false)
         
     end

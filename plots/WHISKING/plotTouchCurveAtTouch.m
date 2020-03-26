@@ -1,7 +1,10 @@
 %% for cellStep = 1:length(U)
 close all
 %%
-cellStep = 35
+plotRange = -200:200;
+zeroPoint = find(plotRange==0);
+addToZeroPoint = 3:8;
+cellStep = 36
 %     %%
 disp(num2str(cellStep))
 cellTMP = U{cellStep};
@@ -33,19 +36,25 @@ allTouchesOFF = unique([touchFirstOFF; touchLateOFF]);
 %     %%
 
 figure
-curve = squeeze(cellTMP.S_ctk(6,:,:));
-curveTouch = curve(allTouches+(-100:100));
-trials = ceil(allTouches./4000);
 
+curve = squeeze(cellTMP.S_ctk(6,:,:));
+curveTouch = curve(allTouches+(plotRange));
+% % % SET HIGH VALUES TO LOWER MAX
+toFindOutliersMAT = curveTouch>0.06;
+outliear = isoutlier(curveTouch(toFindOutliersMAT));
+outlierINDS = find(toFindOutliersMAT);
+curveTouch(outlierINDS(outliear)) = max(max(~(curveTouch(toFindOutliersMAT))));
+% % % 
+trials = ceil(allTouches./4000);
 imagesc(curveTouch)
 %     %%
 
-[sorted, index]=sort(nanmean(curveTouch(:, 102:104), 2))
+[sorted, index]=sort(nanmean(curveTouch(:, addToZeroPoint+zeroPoint), 2))
 %     %%
 %%%
 figure
-curve = squeeze(cellTMP.S_ctk(6,:,:));
-curveTouch = curve(allTouches+(-100:100));
+% curve = squeeze(cellTMP.S_ctk(6,:,:));
+% curveTouch = curve(allTouches+(plotRange));
 
 curveTouch2 = curveTouch(index, :);
 imagesc(curveTouch2)
@@ -58,9 +67,9 @@ indexNrmaltouches = find(findNormal<=0.01);
 
 
 
-%%
+%
 
-findNormal= abs(nanmean(curveTouch(:, 102:104), 2)-nanmedian(nanmean(curveTouch(:, 102:104), 2)));
+findNormal= abs(nanmean(curveTouch(:, addToZeroPoint+zeroPoint), 2)-nanmedian(nanmean(curveTouch(:,addToZeroPoint+zeroPoint), 2)));
 figure;(plot(sort(findNormal)))
 indexNrmaltouches2 = find(findNormal<=0.01);
 

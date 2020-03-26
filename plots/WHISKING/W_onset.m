@@ -1,13 +1,13 @@
 %%
 cellStep = 30;
-
+runThese =  1:length(U)
 
 %%
 close all hidden
 subplotMakerNumber = 1; subplotMaker
 xPlotRange = -50:50;
 transparentVal = .05;
-for cellStep = 1: length(U)
+for cellStep = runThese
     
     
     ampVar = squeeze(U{cellStep}.S_ctk(3, :, :));% blue
@@ -61,8 +61,9 @@ for cellStep = 1: length(U)
         %     onsetIND = onsetIND +BLperiod(end)+1;
         
         startSignalInd = BLperiod(end)+signalStartAfterBLend +1;
-        onsetINDinRange = intersect(onsetIND, (startSignalInd: ...
-            BLperiod(end)+signalStartAfterBLend+lengthOfSignal));
+        onsetINDinRange = intersect(onsetIND, ...
+            (startSignalInd:BLperiod(end)+signalStartAfterBLend+lengthOfSignal));% get the whisk on signal 
+        % in the range that we specified 
         
         BL_STD = std(thetaTOplot(baslineIND));
         
@@ -91,31 +92,31 @@ for cellStep = 1: length(U)
             
             
             
-            
-            % % % % % % % % % % % % % % % % % % % % % % % % % % % % %         figure(50)
-            % % % % % % % % % % % % % % % % % % % % % % % % % % % % %         hold off
-            % % % % % % % % % % % % % % % % % % % % % % % % % % % % %         %%%plotting section
-            % % % % % % % % % % % % % % % % % % % % % % % % % % % % %         plot(xTOplot, ampTOplot, 'b-')
-            % % % % % % % % % % % % % % % % % % % % % % % % % % % % %         hold on
-            % % % % % % % % % % % % % % % % % % % % % % % % % % % % %         plot(xTOplot, velTOplot, '-r');
-            % % % % % % % % % % % % % % % % % % % % % % % % % % % % %         plot(xTOplot, thetaTOplot, 'g-');
-            % % % % % % % % % % % % % % % % % % % % % % % % % % % % %         plot(onsetIND, thetaTOplot(onsetIND+poleOnset), 'k.')
-            % % % % % % % % % % % % % % % % % % % % % % % % % % % % %         plotONSET = plot(actualOnset-poleOnset, thetaTOplot(actualOnset), 'b*');
-            % % % % % % % % % % % % % % % % % % % % % % % % % % % % %         plotONSET.MarkerSize = 10;
-            % % % % % % % % % % % % % % % % % % % % % % % % % % % % %         plotONSET.LineWidth = 2;
-            % % % % % % % % % % % % % % % % % % % % % % % % % % % % %         plot(signalIndex-poleOnset ,signalSTD, 'y-')
-            % % % % % % % % % % % % % % % % % % % % % % % % % % % % %
-            % % % % % % % % % % % % % % % % % % % % % % % % % % % % %         poleUpLineRange = -40:40;
-            % % % % % % % % % % % % % % % % % % % % % % % % % % % % %         plot(ones(length(poleUpLineRange)).*0, poleUpLineRange, '-k')
-            % % % % % % % % % % % % % % % % % % % % % % % % % % % % %
-            % % % % % % % % % % % % % % % % % % % % % % % % % % % % %         grid;
-            % % % % % % % % % % % % % % % % % % % % % % % % % % % % %         ylim([-10 30]);
-            % % % % % % % % % % % % % % % % % % % % % % % % % % % % %         xlim([-200, 200]);
-            % % % % % % % % % % % % % % % % % % % % % % % % % % % % %         xticks(-50:10:200);
-            % % % % % % % % % % % % % % % % % % % % % % % % % % % % %
-            % % % % % % % % % % % % % % % % % % % % % % % % % % % % %         %         pause(0.2)
-            % % % % % % % % % % % % % % % % % % % % % % % % % % % % %         hold off
-            % % % % % % % % % % % % % % % % % % % % % % % % % % % % %         keyboard
+%             
+%                     figure(50)
+%                     hold off
+%                     %%%plotting section
+%                     plot(xTOplot, ampTOplot, 'b-')
+%                     hold on
+%                     plot(xTOplot, velTOplot, '-r');
+%                     plot(xTOplot, thetaTOplot, 'g-');
+%                     plot(onsetIND, thetaTOplot(onsetIND+poleOnset), 'k.')
+%                     plotONSET = plot(actualOnset-poleOnset, thetaTOplot(actualOnset), 'b*');
+%                     plotONSET.MarkerSize = 10;
+%                     plotONSET.LineWidth = 2;
+%                     plot(signalIndex-poleOnset ,signalSTD, 'y-')
+%             
+%                     poleUpLineRange = -40:40;
+%                     plot(ones(length(poleUpLineRange)).*0, poleUpLineRange, '-k')
+%             
+%                     grid;
+%                     ylim([-10 30]);
+%                     xlim([-200, 200]);
+%                     xticks(-50:10:200);
+%             
+%                     %         pause(0.2)
+%                     hold off
+%                     keyboard
         else
             
             actualOnset = actualOnset(end);
@@ -182,7 +183,7 @@ set(gcf, 'Units', 'Normalized', 'OuterPosition', [0, 0, 1, 1]);
 close all hidden
 subplotMakerNumber = 1; subplotMaker
 shiftPlotForPoleUp = 50;% shift this cause whisking happens after pole up
-for cellStep = 1:length(U)
+for cellStep = runThese
     disp(cellStep)
     trialsToUse = ~isnan(U{cellStep}.whiskerOnset ); % to compare pole aligned and predicted whisking onset aligned
     % we need to use only the trials used in the whisking onset aligned set (cause some are disgarded

@@ -12,6 +12,7 @@ SP2 = 9;
 shiftToZero = false;
 counter =0 ;
 for cellStep = 1:45
+    
     % % % % U{23}.details.projectDetails.cellNumberForProject
     counter = counter +1;
     

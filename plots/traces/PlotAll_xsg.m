@@ -2,6 +2,13 @@ function PlotAll_xsg(fileDir, varargin)
 %funtion PlotAll_xsg works to plot multiple XSG files on a dingle plot you
 %can choose to plot for example 3 xsg files per plot based on a directory
 %that has 10 
+%{
+
+
+
+PlotAll_xsg('C:\Users\maire\Downloads\New folder (5)')
+
+%}
 %%%%%%%%%%%%%%%%%%%%full screen 
 if nargin >=3 
 if varargin{2} == 'full'

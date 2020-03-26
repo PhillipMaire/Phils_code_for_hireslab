@@ -12,7 +12,17 @@
 % %%%%have all the data here at onece
 %
 %%
+allCONTACTS = dir('Z:\Users\Phil\Data\Characterization\LESION_EXPERIMENTS\AC_CONTACTS\*.mat')
 
+for k = 1:length(allCONTACTS)
+    tmpName = allCONTACTS(k).name;
+    ind1 = strfind(tmpName, 'ConTA_') + length('ConTA_') ;
+    ind2 = strfind(tmpName, '.mat')- 1;
+    cellNumsFromWrapper{k} = tmpName(ind1:ind2);
+    
+end
+cellNumsFromWrapper
+%%
 % for k = 1: length(allCONTACTS)
 %
 %     newCell{k} = allCONTACTS(k).CellNumber;
@@ -25,28 +35,14 @@
 clear U
 close all hidden
 
-cellNumsFromWrapper = {'1' '2' '5' '6' '7' '8' '9' '10' '11' '12' '14' '15' '16A' '16B' '17' '18' ...
-    '21' '22' '23' '24' '25' '26' '27' '28' '29' '30' '33A' '33B' '35' '37' '39' '40' '41' '42'  ...
-    '43' '44' '45' '46'  '47' '48' '49' '50'  '51' '51B' '52'}
-% cellNumsFromWrapper = { '2' '5' '6' '7' '8' '9' '10' '11' '12' '14' '15' '16A' '16B' '17' '18' ...
+% cellNumsFromWrapper = {'1' '2' '5' '6' '7' '8' '9' '10' '11' '12' '14' '15' '16A' '16B' '17' '18' ...
 %     '21' '22' '23' '24' '25' '26' '27' '28' '29' '30' '33A' '33B' '35' '37' '39' '40' '41' '42'  ...
 %     '43' '44' '45' '46'  '47' '48' '49' '50'  '51' '51B' '52'}
 
+cellNumsFromWrapper = {'1' '2' '5' '6' '7' '8' '9' '10' '11' '12' '14' '15' '16A' '16B' '17' '18' ...
+    '21' '22' '23' '24' '25' '26' '27' '28' '29' '30' '33A' '33B' '35' '37' '39' '40' '41' '42'  ...
+    '43' '44' '45' '46'  '47' '48' '49' '50'  '51' '51B' '52'}
 
-% cellNumsFromWrapper = {'1' '2' '5' '6' '7' '8' '9' '10' '11' '12' '14' '15' '16A' '17' '18' ...
-%     '21' '22' '23' '24' '25' '26' '27' '28' '29' '33A' '33B' '35' '37' '39' '40' '41' '42'  ...
-%     '43' '44' '45' '46'  '47' '48' '49' '50'  '51' '51B' '52'}
-
-
-
-% cellNumsFromWrapper = { '2' '5' '6' '7' '8' '9' '10' '14' '15' '16A' '17' '18' ...
-%     '21' '22' '23' '24' '25' '26' '27' '28' '29' '33A' '35' '37' '39' '40' '41' '42'  ...
-%     '43' '45' '46'  '47' '48' '49' '50'  '51'}
-
-
-% % cellNumsFromWrapper = {'26' '27' '28' '29' '30' '33A' '35' '37' '40' '41' '42'  ...
-% %     '43' '45' '46'  '47' '48' '49' '50'  '51' '52'}%based on the auto curator contacts done now
-% cellNumsFromWrapper = {'14' '21' '41'}
 trialCutoffs = repmat([1 1100],numel(cellNumsFromWrapper),1);
 
 
@@ -99,7 +95,8 @@ for cellStep = 1:length(cellNumsFromWrapper)
     clear d %d is saved variable for directory need to remove it
     d.varNames = {'thetaAtBase', 'velocity', 'amplitude', 'setpoint', 'phase', ...
         'deltaKappa','M0Adj','FaxialAdj', 'firstTouchOnset', 'firstTouchOffset', ...
-        'firstTouchAll', 'lateTouchOnset','lateTouchOffset','lateTouchAll','PoleAvailable','beamBreakTimes'};
+        'firstTouchAll', 'lateTouchOnset','lateTouchOffset','lateTouchAll','PoleAvailable','beamBreakTimes'...
+        'kappa', 'thetaAtContact'};
     d.cellNum = cellNumsFromWrapper{cellStep};
     
     d.t = max(cellfun(@(x)round(x.whiskerTrial.time{1}(end)*1000)+1,T.trials(T.whiskerTrialInds)));
@@ -287,7 +284,6 @@ for cellStep = 1:length(cellNumsFromWrapper)
         waitbar(i/length(useTrials), progressWin2);
         timeIdx = round(T.trials{useTrials(i)}.whiskerTrial.time{traj}*1000)+1;
         
-        
         theta = nan(1,d.t);
         theta(timeIdx) = T.trials{useTrials(i)}.whiskerTrial.thetaAtBase{traj};
         
@@ -300,6 +296,7 @@ for cellStep = 1:length(cellNumsFromWrapper)
                 theta(j) = nanmean(theta(j+[-2:2]));
             end
         end
+        % % % % % % % %         theta(isnan(theta)) = min(theta); % by phil for whisker off of screen when retracted too many nans
         
         firstTouchOn    = [];
         firstTouchOff   = [];
@@ -359,6 +356,9 @@ for cellStep = 1:length(cellNumsFromWrapper)
         pinOut = min([d.t round(1000*T.trials{useTrials(i)}.pinAscentOnsetTime + travelOut)]);
         
         d.S_ctk(1,:,i) = theta;%feature from VIDEO
+        d.S_ctk(17,:,i) = kappa;%feature from VIDEO
+                d.S_ctk(18,:,i) = thetaAtContact;%feature from VIDEO
+
         d.S_ctk(2,:,i) = vel;%feature from VIDEO
         d.S_ctk(3,:,i) = amplitude;%feature from VIDEO
         d.S_ctk(4,:,i) = setpoint;%feature from VIDEO
@@ -404,26 +404,26 @@ for cellStep = 1:length(cellNumsFromWrapper)
         d.R_ntk(1,spiketimes,i) = 1;
     end
     
-% % % %     % get the spikes for stim trials
-% % % %     test = []
-% % % %     for i =1:length(STIM_ON_TRIALS);
-% % % %         spiketimes = round((T.trials{STIM_ON_TRIALS(i)}.spikesTrial.spikeTimes ./ 10)...
-% % % %             -(T.whiskerTrialTimeOffset*1000));
-% % % %         spiketimes = spiketimes(spiketimes>0 & spiketimes <=d.t);%%%%
-% % % %         test(spiketimes,i) = 1;
-% % % %     end
-% % % %     if isempty(test) && isempty(actualEphusStimNums)
-% % % %         disp('no stim trials')
-% % % %     elseif ~isempty(test)
-% % % %         test2 = nanmean(test, 2);
-% % % %         figure;
-% % % %         plot( 1:length(test2), smooth(test2,30), 'k-');
-% % % % %         keyboard 
-% % % %     else
-% % % %         
-% % % % %         keyboard
-% % % %     end
-    %% OK IT LOOKS LIKE A WILL HAVE TO SORT A LOT OF EPHUS TRIALS TO MAKE SURE i HAVE THEM FOR i e INDENTIY 
+    % % % %     % get the spikes for stim trials
+    % % % %     test = []
+    % % % %     for i =1:length(STIM_ON_TRIALS);
+    % % % %         spiketimes = round((T.trials{STIM_ON_TRIALS(i)}.spikesTrial.spikeTimes ./ 10)...
+    % % % %             -(T.whiskerTrialTimeOffset*1000));
+    % % % %         spiketimes = spiketimes(spiketimes>0 & spiketimes <=d.t);%%%%
+    % % % %         test(spiketimes,i) = 1;
+    % % % %     end
+    % % % %     if isempty(test) && isempty(actualEphusStimNums)
+    % % % %         disp('no stim trials')
+    % % % %     elseif ~isempty(test)
+    % % % %         test2 = nanmean(test, 2);
+    % % % %         figure;
+    % % % %         plot( 1:length(test2), smooth(test2,30), 'k-');
+    % % % % %         keyboard
+    % % % %     else
+    % % % %
+    % % % % %         keyboard
+    % % % %     end
+    %% OK IT LOOKS LIKE A WILL HAVE TO SORT A LOT OF EPHUS TRIALS TO MAKE SURE i HAVE THEM FOR i e INDENTIY
     
     U{cellStep} = d;
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -439,7 +439,10 @@ for cellStep = 1:length(cellNumsFromWrapper)
     U{cellStep}.meta.poleOnset                 = cellfun(@(x)x.behavTrial.pinDescentOnsetTime,T.trials(useTrials))-T.whiskerTrialTimeOffset;
     U{cellStep}.meta.poleOffset                = cellfun(@(x)x.behavTrial.pinAscentOnsetTime ,T.trials(useTrials))-T.whiskerTrialTimeOffset;
     U{cellStep}.meta.trialStartTime                = cellfun(@(x)x.behavTrial.trialStartTime ,T.trials(useTrials))-T.whiskerTrialTimeOffset;
+    U{cellStep}.meta.trialStartTime         = cellfun(@(x)x.behavTrial.trialStartTime ,T.trials(useTrials))-T.whiskerTrialTimeOffset;
     
+    U{cellStep}.meta.trialEvents = cellfun(@(x) x.behavTrial.trialEvents, T.trials(useTrials), 'UniformOutput', false);
+    U{cellStep}.meta.nextTrialEvents = cellfun(@(x) x.behavTrial.nextTrialEvents, T.trials(useTrials), 'UniformOutput', false);
     
     
     
@@ -457,6 +460,8 @@ for cellStep = 1:length(cellNumsFromWrapper)
     answerLicksEmptyIndex = cellfun(@isempty,answerLicks);
     answerLicks(answerLicksEmptyIndex) = {nan(1)};
     U{cellStep}.meta.answerLickTime   = cell2mat(answerLicks);
+    
+    
     
     
     beamBreakTimesCell = cellfun(@(x)x.beamBreakTimes-T.whiskerTrialTimeOffset     ,T.trials(useTrials), 'UniformOutput', false);
@@ -572,7 +577,7 @@ for cellStep = 1:length(cellNumsFromWrapper)
     
 end
 close(progressWin2)
-
+keyboard
 try
     disp('making all time units into ms with no decimal points');
     U = msAndRoundUarray(U, 'ms');%turn units into ms time units

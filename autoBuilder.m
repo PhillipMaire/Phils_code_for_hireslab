@@ -7,7 +7,11 @@
 
 
 startDir = 'X:\Video\PHILLIP\';
-cells2run = [ 69 3 4 6 10 13 14 17 18 84];
+startDir = 'X:\Video\PHILLIP\';
+
+
+
+cells2run = [15 58 63 64];
 cells2run = cells2run+2000
 deleteFilesOn = true;
 [catchcell] = autoBuilder(startDir, cells2run, deleteFilesOn)
@@ -26,16 +30,16 @@ if deleteFilesOn
     continue1 = false;
     question1 = 'Are you sure you want to delete ALL .WL .WST .WT and .WTLIA files in ALL THE DIRECTORIES LISTED?';
     question2 = 'ARE YOU REALLY REALLY SURE YOU WANT TO DO THAT? IF YOU DONT KNOW WHAT YOU ARE DOING THEN STOP!!';
-    tmp1 = questdlg(question1)
+    tmp1 = questdlg(question1);
     if strcmp(tmp1, 'Yes')
-        tmp1 = questdlg(question2)
+        tmp1 = questdlg(question2);
         if strcmp(tmp1, 'Yes')
             continue1 = true;
         end
     end
 end
 if continue1 == false
-    error('stopped becasue  user wasn''t ready to delete allkinds of files, probs a good idea')
+    error('stopped becasue  user wasn''t ready to delete all kinds of files, probs a good idea')
 end
 %%
 tic
@@ -92,6 +96,7 @@ for k = 1:length(allcellBuilders2)
         if ~exist('follicleExtrapDistInPix')
             follicleExtrapDistInPix =  33
         end
+        
         if deleteFilesOn
             cd(vidDir)
             delete *_WL.mat
@@ -100,12 +105,85 @@ for k = 1:length(allcellBuilders2)
             delete *-WTLIA.mat
             
         end
-        % Whisker.makeAllDirectory_WhiskerTrial(vidDir,0,'mask',maskPoints,...
-        Whisker.makeAllDirectory_WhiskerTrial(vidDir,0,'mask',maskPoints,...
-            'trial_nums',trialNums,'include_files',includef,...
-            'barRadius',10,'faceSideInImage', 'top', 'framePeriodInSec',.001,...
-            'imagePixelDimsXY',[vidFile.Width  vidFile.Height],'pxPerMm',33,'mouseName',mouseName,'sessionName',sessionName,'protractionDirection','leftward')
-        
+        try
+            vidFile.Width
+        catch
+            tmpVdir = dir( [vidDir, filesep, '*.mp4']);
+            vidNum = Sample(1:length(tmpVdir));
+            vidName = [tmpVdir(vidNum).folder , filesep, tmpVdir(vidNum).name];
+            try
+                vidFile = VideoReader(vidName);
+                frame = readFrame(vidFile);
+            catch
+                vidFile = mmread(vidName);
+                frame = vidFile.frames(1).cdata;
+                vidFile.Width = vidFile.width;
+                vidFile.Height = vidFile.height;
+            end
+            
+        end
+        try
+            % Whisker.makeAllDirectory_WhiskerTrial(vidDir,0,'mask',maskPoints,...
+            Whisker.makeAllDirectory_WhiskerTrial(vidDir,0,'mask',maskPoints,...
+                'trial_nums',trialNums,'include_files',includef,...
+                'barRadius',10,'faceSideInImage', 'top', 'framePeriodInSec',.001,...
+                'imagePixelDimsXY',[vidFile.Width  vidFile.Height],'pxPerMm',33,...
+                'mouseName',mouseName,'sessionName',sessionName,'protractionDirection','leftward')
+        catch
+            %%
+            %%
+            %%
+            %%
+            %%
+            %%
+            %%
+            %%
+            %%
+            %%
+            %%
+            %%
+            %%
+            %%
+            %%
+            %%
+            %%
+            %%
+            %%
+            %%
+            %%
+            for k = 1:length(includef)
+                includef{k}(9) = '9';
+            end
+            
+            Whisker.makeAllDirectory_WhiskerTrial(vidDir,0,'mask',maskPoints,...
+                'trial_nums',trialNums,'include_files',includef,...
+                'barRadius',10,'faceSideInImage', 'top', 'framePeriodInSec',.001,...
+                'imagePixelDimsXY',[vidFile.Width  vidFile.Height],'pxPerMm',33,...
+                'mouseName',mouseName,'sessionName',sessionName,'protractionDirection','leftward')
+            
+            
+        end
+          %%
+            %%
+            %%
+            %%
+            %%
+            %%
+            %%
+            %%
+            %%
+            %%
+            %%
+            %%
+            %%
+            %%
+            %%
+            %%
+            %%
+            %%
+            %%
+            %% i changed teh name of the video files and so this try catch is to change 18**** to 19****
+            %%
         sectionComp = 3
         
         

@@ -11,12 +11,14 @@
 
 
 %%
-
-for cellNum =1:length(U)
+% U2 = msAndRoundUarray(U, 'sec');
+U2 = U
+for cellNum =1:length(U2)
+    
     clearvars -except U cellNum U2 Uall
     h = figure(400+cellNum);
     %         waitForEnterPress
-%     pause()
+    %     pause()
     
     
     %%%%%%%choose one below
@@ -36,21 +38,21 @@ for cellNum =1:length(U)
     %search for ##setvar to find variables you mostlikely want to
     %manipulate
     
-    mouseName = U{cellNum}.details.mouseName;
-    sessionName = U{cellNum}.details.sessionName;
-    cellNumString = U{cellNum}.details.cellNum;
-    cellCode = U{cellNum}.details.cellCode;
-    projectCellNum = num2str(U{cellNum}.cellNum);
-    depth = num2str(U{cellNum}.details.depth);
-    fractionCorrect = num2str(U{cellNum}.details.fractionCorrect*100);
-    trialsCorrect = U{cellNum}.meta.trialCorrect;
+    mouseName = U2{cellNum}.details.mouseName;
+    sessionName = U2{cellNum}.details.sessionName;
+    cellNumString = U2{cellNum}.details.cellNum;
+    cellCode = U2{cellNum}.details.cellCode;
+    projectCellNum = num2str(U2{cellNum}.cellNum);
+    depth = num2str(U2{cellNum}.details.depth);
+    fractionCorrect = num2str(U2{cellNum}.details.fractionCorrect*100);
+    trialsCorrect = U2{cellNum}.meta.trialCorrect;
     fractionCorrectstr = ['1-',num2str(numel(trialsCorrect)),' ',fractionCorrect(1:4), '%'];
     
     saveDir = 'Z:\Users\Phil\Data\plots\aligned to lick';
     saveStringGeneral = 'aligned_ans_lick-(sorted_1st_lick-2nd-sortedanswerlick)';
     saveString = [saveDir, filesep, 'cell-', projectCellNum,' ',saveStringGeneral];
     
-    useTrials = U{cellNum}.details.useTrials;
+    useTrials = U2{cellNum}.details.useTrials;
     %look at good perfomrance region
     numTrialsInRowCorrect = 4; %number of correct trials ina row to
     %find the last instance of so that you can give a good performance measure
@@ -74,7 +76,7 @@ for cellNum =1:length(U)
     hold on
     
     
-    set(gca,'ylim',[0 U{cellNum}.k]+1)
+    set(gca,'ylim',[0 U2{cellNum}.k]+1)
     
     
     smoothFactor = 30;%##setvar
@@ -84,10 +86,10 @@ for cellNum =1:length(U)
     
     
     
-    go = U{cellNum}.meta.trialType==1;%all trials that are go
-    nogo = U{cellNum}.meta.trialType==0;%all trials that are nogo
-    correct = U{cellNum}.meta.trialCorrect==1;
-    incorrect = U{cellNum}.meta.trialCorrect==0;
+    go = U2{cellNum}.meta.trialType==1;%all trials that are go
+    nogo = U2{cellNum}.meta.trialType==0;%all trials that are nogo
+    correct = U2{cellNum}.meta.trialCorrect==1;
+    incorrect = U2{cellNum}.meta.trialCorrect==0;
     lick = (go.*correct)+(nogo.*incorrect);
     nolick =lick==0;
     hit = (go.*correct);
@@ -96,18 +98,18 @@ for cellNum =1:length(U)
     miss = go.*incorrect;
     
     poleAvailableTime =500;
-    poleOnsetTimesALL = U{cellNum}.meta.poleOnset*1000;
-    offsetShift = U{cellNum}.details.whiskerTrialTimeOffset*1000;
+    poleOnsetTimesALL = U2{cellNum}.meta.poleOnset*1000;
+    offsetShift = U2{cellNum}.details.whiskerTrialTimeOffset*1000;
     
     [licksLinInds, allLicksCell, firstLicks, trialStart, trialEnd, licksPostPole, licksPrePole] ...
-        = lickExtractor(U, cellNum,offsetShift,poleOnsetTimesALL);%##setvar ad shift value to make pole available time
+        = lickExtractor(U2, cellNum,offsetShift,poleOnsetTimesALL);%##setvar ad shift value to make pole available time
     %uses shift value bevaus ethese values arent shifted in the uber aray
     %but the other lick times are shifted in the uber array can use a plus
     %value to add to pole onset for pole available times
     
     
     %answer licks time from the U array (originally form the T array)
-    answerLickTimes = U{cellNum}.meta.answerLickTime*1000;
+    answerLickTimes = U2{cellNum}.meta.answerLickTime*1000;
     %replace nans with average lick time
     %get just the first licks after pole up
     licksPostPoleFinal = licksPostPole(:,1);
@@ -213,7 +215,7 @@ for cellNum =1:length(U)
         
         for i = 1:length(var1) % i through all the go's
             %             if sum(U{cellNum}.R_ntk(1,:,var1(i)))>0%if there are spikes in this trial...
-            var1LinInds = U{cellNum}.R_ntk(1,:,var1(i))==1;
+            var1LinInds = U2{cellNum}.R_ntk(1,:,var1(i))==1;
             %                 var1LinInds = circshift(var1LinInds, [0, -shiftRastBy(var1(i))]);%shift the value
             if alignON ==1
                 offsetShift = floor(alignToThisVar(var1(i)));%trials numbers for trial type selected above is --> var1(i)
@@ -345,6 +347,7 @@ for cellNum =1:length(U)
     %% resize
     set(gcf, 'Units', 'Normalized', 'OuterPosition', [1, 0, 1, 1]);
     %% save
+    
     if saveON == 1
         filename = strcat(fileNameAddOn, 'cell_',projectCellNum);
         saveas(gcf,filename,'jpg')

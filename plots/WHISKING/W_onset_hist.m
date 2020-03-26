@@ -1,4 +1,4 @@
-%% whisk onset time histogram 
+%% whisk onset time histogram
 %% look at onset times histogram
 SP1 = 5; %subplot indice 1
 SP2 = 9; %subplot indice 2
@@ -9,7 +9,7 @@ counter = SP1.*SP2;
 
 
 % % % % % [N,edgesForHist] = histcounts(onsetsSHIFTED,6)
-for cellStep = 1:length(U)
+for cellStep = 1 :10%:length(U)
     xlimSet = [-75 180];
     edgesForHist = linspace(xlimSet(1),xlimSet(2),50);
     
@@ -23,9 +23,13 @@ for cellStep = 1:length(U)
     
     counter = counter +1;
     subplot(SP1, SP2, counter)
-
     
-    onsets = U{cellStep}.whiskerOnset;
+    try
+        onsets = U{cellStep}.whiskerOnset;
+    catch
+        W_onset
+        onsets = U{cellStep}.whiskerOnset;
+    end
     poleONSETS = U{cellStep}.meta.poleOnset;
     onsetsSHIFTED = onsets-poleONSETS;
     
@@ -50,6 +54,7 @@ for cellStep = 1:length(U)
 end
 %%
 set(gcf, 'Units', 'Normalized', 'OuterPosition', [0, 0, 1, 1]);
+keyboard
 filename =  [num2str(cellStep), 'whiskOnsetALL_ylim_035' ];
 saveas(gcf,filename,'png')
 savefig(filename)

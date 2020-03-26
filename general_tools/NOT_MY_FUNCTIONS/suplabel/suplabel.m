@@ -44,7 +44,11 @@ if nargin < 3
  if ~isempty(ah)
   supAxes=[inf,inf,0,0];
   leftMin=inf;  bottomMin=inf;  leftMax=0;  bottomMax=0;
+  if strcmp('t',whichLabel)
   axBuf=.04;
+  else
+  axBuf=.00;
+  end
   set(ah,'units','normalized')
   ah=findall(gcf,'type','axes');
   for ii=1:length(ah)
@@ -82,8 +86,10 @@ elseif strcmp('yy',whichLabel)
   ylabel(text);
   set(ax,'YAxisLocation','right')
 end
-
-for k=1:length(currax), axes(currax(k));end % restore all other axes
+%commented this out becasue it screws up 3d color line plot clinep.m -PSM
+% for k=1:length(currax)
+%     axes(currax(k))
+% end % restore all other axes
 
 if (nargout < 2)
   return

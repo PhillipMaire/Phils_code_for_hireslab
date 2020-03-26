@@ -11,4 +11,9 @@
 *.png
 *.png
 *.fig
+*.pdf
+*.emf
+*.eps
 plots/SPIKES/New folder/vArrayBuilderMats/pole/poleUP.fig
+*.ahk
+*.bak

@@ -1,5 +1,5 @@
 %%
-function measureFindMissedClass_specificFrames_simple2
+function measureFindMissedClass_specificFrames_FINAL
 %% find the frames that the program missclassifiedthat means that ther is no 0 whisker in the frame
 %% also loooks at double frames which is u
 %%
